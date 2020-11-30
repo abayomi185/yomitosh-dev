@@ -17,6 +17,7 @@ function IndexPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* FontAwesome CDN style tag */}
+      {/* This is a comment */}
       <Head>
         <title>Yomi | Hub</title>
         <meta
