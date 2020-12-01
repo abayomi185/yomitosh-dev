@@ -6,7 +6,7 @@ function SocialLinks() {
       {socialLinks.map(link => (
         <li className="mr-3 inline" key={link.icon}>
           <a
-            className="text-custom-3  hover:text-custom-1"
+            className="text-gray-700  hover:text-custom-1"
             href={link.url}
             target="_blank"
             rel="noopener"

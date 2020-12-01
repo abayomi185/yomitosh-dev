@@ -6,5 +6,5 @@
 
 body {
   font-family: 'Karla';
-  @apply bg-gray-300 text-black
+  @apply bg-gray-200 text-black
 }
