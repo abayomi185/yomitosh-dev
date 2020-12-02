@@ -46,11 +46,5 @@
     "url": "https://yomis.blog/pi-deck-teaser",
     "emoji": "📟",
     "active": true
-  },
-  {
-    "title": "- spacer -",
-    "url": "/",
-    "emoji": "",
-    "active": false
   }
 ]
