@@ -30,6 +30,12 @@
     "active": false
   },
   {
+    "title": "SFF Server PC",
+    "url": "https://yomis.blog/server-pc",
+    "emoji": "☁️",
+    "active": true
+  },
+  {
     "title": "Video2Live (iOS app)",
     "url": "https://apps.apple.com/app/video2live/id1500239820",
     "emoji": "⭐️",
