@@ -22,35 +22,5 @@
     "url": "https://youtube.com/yomitosh",
     "emoji": "📺",
     "active": true
-  },
-  {
-    "title": "- spacer -",
-    "url": "/",
-    "emoji": "",
-    "active": false
-  },
-  {
-    "title": "SFF Server PC",
-    "url": "https://yomis.blog/server-pc",
-    "emoji": "☁️",
-    "active": true
-  },
-  {
-    "title": "Video2Live (iOS app)",
-    "url": "https://apps.apple.com/app/video2live/id1500239820",
-    "emoji": "⭐️",
-    "active": true
-  },
-  {
-    "title": "PiServer",
-    "url": "https://yomis.blog/piserver",
-    "emoji": "☁️",
-    "active": true
-  },
-  {
-    "title": "PiDeck",
-    "url": "https://yomis.blog/pi-deck-teaser",
-    "emoji": "📟",
-    "active": true
   }
 ]

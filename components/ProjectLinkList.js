@@ -1,4 +1,4 @@
-import links from '../json/links.json'
+import links from '../json/links_projects.json'
 
 function LinkList() {
   return (

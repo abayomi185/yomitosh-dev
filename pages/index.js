@@ -1,5 +1,7 @@
 import Header from "../components/Header";
-import LinkList from "../components/LinkList"
+import LinkList from "../components/LinkList";
+import ProjectLinkList from "../components/ProjectLinkList"
+import SectionBreak from "../components/SectionBreak"
 import Footer from "../components/Footer";
 import Head from 'next/head'
 import { initGA, logPageView } from '../utils/analytics'
@@ -37,6 +39,8 @@ function IndexPage() {
 
       {/* List of Links generated from links.json */}
       <LinkList />
+      <SectionBreak sectionName="- Project Highlights -" />
+      <ProjectLinkList />
 
       {/* Social Links and Footer Disclaimer/Credits */}
       <Footer />
