@@ -1,5 +1,11 @@
 [
   {
+    "title": "AlDente for MacBooks",
+    "url": "https://github.com/davidwernhart/AlDente",
+    "emoji": "🍝",
+    "active": true
+  },
+  {
     "title": "Curriculum Vitae (CV)",
     "url": "/CV-Abayomi-Ikuru.pdf",
     "emoji": "📄",
