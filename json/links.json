@@ -6,15 +6,21 @@
     "active": true
   },
   {
-    "title": "Photography Site",
-    "url": "https://yomitosh.com",
-    "emoji": "📸",
-    "active": true
-  },
-  {
     "title": "Project Blog",
     "url": "https://yomis.blog",
     "emoji": "📝",
+    "active": true
+  },
+  {
+    "title": "GitHub",
+    "url": "https://github.com/abayomi185",
+    "emoji": "FaGithub",
+    "active": true
+  },
+  {
+    "title": "Photography Site",
+    "url": "https://yomitosh.com",
+    "emoji": "📸",
     "active": true
   },
   {
