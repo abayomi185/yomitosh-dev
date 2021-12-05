@@ -7,7 +7,7 @@ function Footer() {
       <div className="container text-center mx-auto">
         <div className="md:w-4/6 mx-auto">
           <SocialLinks />
-          <!-- <FooterDisclaimer /> -->
+          {/* <FooterDisclaimer /> */}
         </div>
       </div>
     </footer>
