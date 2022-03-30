@@ -1,9 +1,9 @@
-import socialLinks from '../json/social-links.json'
+import socialLinks from "../json/social-links.json";
 
 function SocialLinks() {
   return (
     <ul className="py-6">
-      {socialLinks.map(link => (
+      {socialLinks.map((link) => (
         <li className="mr-3 inline" key={link.icon}>
           <a
             className="text-gray-700  hover:text-custom-1"
