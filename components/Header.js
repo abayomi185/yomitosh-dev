@@ -5,7 +5,7 @@ function Header() {
         <img src="/yomi.jpg" className="h-24 rounded-full mx-auto mb-5" />
         <h1 className="font-bold">Abayomi O-Ikuru</h1>
         <p>
-          Artificial Intelligence MSc Student
+          Artificial Intelligence MSc
           <br />
           with Electronic Engineering background.
           <br /> Likes Software Dev. and DevOps.
