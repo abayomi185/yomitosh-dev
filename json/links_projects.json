@@ -1,10 +1,29 @@
 [
   {
-    "title": "Undergraduate Project",
+    "title": "A.I. Robot Arm using Reinforcement Learning (PG)",
+    "url": "https://github.com/abayomi185/rl-msc-project",
+    "emoji": "🦾",
+    "active": true
+  },
+  {
+    "title": "Pi Deck Pico - Macro Keypad",
+    "url": "https://github.com/abayomi185/pi-deck-pico",
+    "emoji": "📟",
+    "active": true
+  },
+  {
+    "title": "Lily 58L - Split Keyboard",
+    "url": "https://yomis.blog/lily58l",
+    "emoji": "⌨️",
+    "active": true
+  },
+  {
+    "title": "Invisible Image Watermarking (UG)",
     "url": "https://image-watermarking-site-abayomi185.vercel.app",
     "emoji": "🖼",
     "active": true
   },
+
   {
     "title": "Crypto Trading Bot",
     "url": "https://yomis.blog/crypto-trading-bot/",
@@ -27,12 +46,6 @@
     "title": "PiServer",
     "url": "https://yomis.blog/piserver",
     "emoji": "☁️",
-    "active": true
-  },
-  {
-    "title": "PiDeck",
-    "url": "https://yomis.blog/pi-deck-teaser",
-    "emoji": "📟",
     "active": true
   }
 ]

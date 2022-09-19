@@ -5,10 +5,10 @@ function Header() {
         <img src="/yomi.jpg" className="h-24 rounded-full mx-auto mb-5" />
         <h1 className="font-bold">Abayomi O-Ikuru</h1>
         <p>
-          Artificial Intelligence MSc
+          Artificial Intelligence MSc with
           <br />
-          with Electronic Engineering background.
-          <br /> Likes Software Dev. and DevOps.
+          Electronic Engineering background.
+          <br /> Loves Software Eng. and DevOps.
         </p>
       </div>
     </header>
