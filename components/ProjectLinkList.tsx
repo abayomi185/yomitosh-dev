@@ -1,16 +1,16 @@
-import links from "../json/links_projects.json";
+import links from "@json/links_projects.json";
+import Link from "next/link";
 
-function LinkList() {
+const LinkList = () => {
   return (
-    <main className="flex px-3 sm:px-0 pb-12">
+    <section className="flex px-3 sm:px-0 pb-12">
       <ul className="w-full md:w-4/5 lg:w-3/6 mx-auto">
         {links.map((link) => (
           <li className="mb-4" key={link.title}>
             {link.active && (
-              <a
+              <Link
                 className="relative transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 hover:bg-custom-1 py-4 w-100 block text-center text-gray-200 hover:text-gray-800 rounded-lg px-12 md:px-12"
                 href={link.url}
-                alt={link.title}
                 target="_blank"
                 rel="noopener"
               >
@@ -18,13 +18,13 @@ function LinkList() {
                   {link.emoji}
                 </span>
                 <span>{link.title}</span>
-              </a>
+              </Link>
             )}
           </li>
         ))}
       </ul>
-    </main>
+    </section>
   );
-}
+};
 
 export default LinkList;

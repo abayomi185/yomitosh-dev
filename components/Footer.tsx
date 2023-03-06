@@ -1,7 +1,7 @@
-import SocialLinks from "./SocialLinks";
-import FooterDisclaimer from "./FooterDisclaimer";
+import SocialLinks from "@components/SocialLinks";
+import FooterDisclaimer from "@components/FooterDisclaimer";
 
-function Footer() {
+const Footer = () => {
   return (
     <footer className="px-3 sm:px-0">
       <div className="container text-center mx-auto">
@@ -12,6 +12,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
+};
 
 export default Footer;

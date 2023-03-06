@@ -1,6 +1,6 @@
-import SocialLinks from "./SocialLinks";
+import SocialLinks from "@components/SocialLinks";
 
-function SocialBar() {
+const SocialBar = () => {
   return (
     <div className="container text-center mx-auto pb-2">
       <div className="md:w-4/6 mx-auto">
@@ -8,6 +8,6 @@ function SocialBar() {
       </div>
     </div>
   );
-}
+};
 
 export default SocialBar;
