@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FaTimesCircle } from "react-icons/fa";
 
 import { ASSISTANT_ROLE, IMessage, USER_ROLE } from "@utils/chatgpt";
@@ -11,6 +11,8 @@ const ChatGPT = () => {
   const [loadingResponse, setLoadingResponse] = useState(false);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
+
+  const messagesEndRef = useRef(null);
 
   const getCompletion = async (prompt: string) => {
     const response = await fetch("api/chat", {
@@ -52,6 +54,12 @@ const ChatGPT = () => {
     setLoadingResponse(true);
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  };
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);
@@ -60,6 +68,10 @@ const ChatGPT = () => {
   useEffect(() => {
     promptCounter > 0 && getCompletion(messages.at(-1)?.text);
   }, [promptCounter]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
@@ -115,6 +127,7 @@ const ChatGPT = () => {
                         chatgpt={message.isChatGPT}
                       />
                     ))}
+                    <div ref={messagesEndRef} />
                   </div>
                   <p className="px-6">
                     {loadingResponse ? "Loading..." : null}
@@ -125,6 +138,7 @@ const ChatGPT = () => {
                   >
                     <div className="inline h-full relative flex-1 w-full mr-2">
                       <input
+                        autoFocus
                         type={"text"}
                         className="h-full border-solid border-2 border-gray-700 rounded-lg relative left-0 top-0 px-3 w-full"
                         onChange={(e) => {
@@ -202,17 +216,3 @@ const ChatDialog = ({ content, chatgpt }) => {
     </div>
   );
 };
-
-// const useOnClick = (ref, handler) => {
-//   useEffect(() => {
-//     const listener = (event) => {
-//       if (!ref.current || ref.current.contains(event.target)) {
-//         return;
-//       }
-//     };
-//     document.addEventListener("mousedown", listener);
-//     return () => {
-//       document.removeEventListener("mousedown", listener);
-//     };
-//   }, []);
-// };

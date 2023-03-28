@@ -17,12 +17,28 @@ const createCompletion = async (
   userMessages: ChatCompletionRequestMessage[]
 ) => {
   const response = await openai.createChatCompletion({
-    model: "gpt-4",
+    model: "gpt-3.5-turbo",
     messages: [
       {
         role: "system",
         content:
           "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
+      },
+      {
+        role: "system",
+        content:
+          "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
+          at The University of Sheffield. Yomi then went on to study Artificial Intelligence \
+          at The University of Loughborough.",
+      },
+      {
+        role: "system",
+        content: "Yomi is a real person and not a fictional character.",
+      },
+      {
+        role: "system",
+        content:
+          "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
       },
       ...userMessages,
       { role: "user", content: prompt },
