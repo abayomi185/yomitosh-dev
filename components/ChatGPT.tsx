@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
-import { FaPaperPlane, FaTimesCircle } from "react-icons/fa";
+import { FaTimesCircle } from "react-icons/fa";
 
-import { Configuration, OpenAIApi } from "openai";
-
-interface IMessage {
-  isChatGPT: boolean;
-  text: string;
-  data?: any;
-}
+import { ASSISTANT_ROLE, IMessage, USER_ROLE } from "@utils/chatgpt";
 
 const ChatGPT = () => {
   const [showModal, setShowModal] = useState(false);
-  const [loadedChatGPT, setLoadedChatGPT] = useState(false);
 
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
@@ -22,7 +15,18 @@ const ChatGPT = () => {
   const getCompletion = async (prompt: string) => {
     const response = await fetch("api/chat", {
       method: "POST",
-      body: JSON.stringify({ prompt: prompt }),
+      body: JSON.stringify({
+        prompt: prompt,
+        userMessages: [
+          ...messages.map((message) => {
+            if (message.isChatGPT) {
+              return { role: ASSISTANT_ROLE, content: message.text };
+            } else {
+              return { role: USER_ROLE, content: message.text };
+            }
+          }),
+        ],
+      }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -48,7 +52,7 @@ const ChatGPT = () => {
     setLoadingResponse(true);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);
   };

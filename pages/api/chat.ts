@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Configuration, OpenAIApi } from "openai";
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 
 let openai: OpenAIApi;
 
@@ -12,15 +12,19 @@ const loadChatGPT = () => {
 
 loadChatGPT();
 
-const createCompletion = async (prompt: string) => {
+const createCompletion = async (
+  prompt: string,
+  userMessages: ChatCompletionRequestMessage[]
+) => {
   const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: "gpt-4",
     messages: [
       {
         role: "system",
         content:
           "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
       },
+      ...userMessages,
       { role: "user", content: prompt },
     ],
     temperature: 0.7,
@@ -31,8 +35,8 @@ const createCompletion = async (prompt: string) => {
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { prompt } = req.body;
-    const chatResponse = await createCompletion(prompt);
+    const { prompt, userMessages } = req.body;
+    const chatResponse = await createCompletion(prompt, userMessages);
 
     res
       .status(200)
