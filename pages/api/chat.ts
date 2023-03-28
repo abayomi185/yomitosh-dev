@@ -28,7 +28,7 @@ const createCompletion = async (
       { role: "user", content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 256,
+    max_tokens: 2048,
   });
   return response;
 };
