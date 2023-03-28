@@ -138,7 +138,6 @@ const ChatGPT = () => {
                   >
                     <div className="inline h-full relative flex-1 w-full mr-2">
                       <input
-                        autoFocus
                         type={"text"}
                         className="h-full border-solid border-2 border-gray-700 rounded-lg relative left-0 top-0 px-3 w-full"
                         onChange={(e) => {
