@@ -1,3 +1,4 @@
+import { GPTModel } from "@utils/chatgpt";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 
@@ -14,10 +15,11 @@ loadChatGPT();
 
 const createCompletion = async (
   prompt: string,
-  userMessages: ChatCompletionRequestMessage[]
+  userMessages: ChatCompletionRequestMessage[],
+  model: GPTModel
 ) => {
   const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
+    model: model,
     messages: [
       {
         role: "system",
@@ -51,8 +53,8 @@ const createCompletion = async (
 
 export default async (req: NextApiRequest, res: NextApiResponse) => {
   try {
-    const { prompt, userMessages } = req.body;
-    const chatResponse = await createCompletion(prompt, userMessages);
+    const { prompt, userMessages, model } = req.body;
+    const chatResponse = await createCompletion(prompt, userMessages, model);
 
     res
       .status(200)

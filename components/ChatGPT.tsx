@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FaTimesCircle } from "react-icons/fa";
 
-import { ASSISTANT_ROLE, IMessage, USER_ROLE } from "@utils/chatgpt";
+import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
 
 const ChatGPT = () => {
   const [showModal, setShowModal] = useState(false);
@@ -9,6 +9,7 @@ const ChatGPT = () => {
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
   const [loadingResponse, setLoadingResponse] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
 
@@ -28,6 +29,7 @@ const ChatGPT = () => {
             }
           }),
         ],
+        model: checked ? GPTModel.GPT4 : GPTModel.GPT3,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -102,7 +104,7 @@ const ChatGPT = () => {
       {showModal && (
         <>
           <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="relative my-6 mx-auto w-full max-w-4xl h-full md:h-3/4">
+            <div className="relative my-6 mx-auto w-full max-w-4xl h-[95%] md:h-3/4 flex">
               {/*content*/}
               <div className="border-0 rounded-2xl shadow-lg relative flex flex-col w-full h-full bg-white outline-none focus:outline-none">
                 {/*header*/}
@@ -117,8 +119,23 @@ const ChatGPT = () => {
                     </span>
                   </button>
                 </div>
+                <div className="px-5 py-3 border-b border-solid border-slate-200">
+                  <label className="cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => {
+                        // set checked to opposite of current value
+                        setChecked(!checked);
+                        console.log(checked);
+                      }}
+                      className="w-4 h-4 accent-green-600 mr-2 align-middle"
+                    />
+                    Use GPT-4
+                  </label>
+                </div>
                 {/*body*/}
-                <div className="relative px-2 md:px-6 pb-5 my-auto flex h-[80%] flex-col">
+                <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
                   <div className="overflow-scroll grow mb-4 mx-6">
                     {messages.map((message, index) => (
                       <ChatDialog
