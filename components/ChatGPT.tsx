@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { FaTimesCircle } from "react-icons/fa";
+import ReactMarkdown from "react-markdown";
 
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
 
@@ -228,7 +229,7 @@ const ChatDialog = ({ content, chatgpt }) => {
       {chatgpt && (
         <p className="border-b border-solid border-gray-500 mb-2">A.G.I Yomi</p>
       )}
-      <p>{content}</p>
+      <ReactMarkdown>{content}</ReactMarkdown>
     </div>
   );
 };
