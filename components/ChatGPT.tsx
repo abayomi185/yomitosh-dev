@@ -10,6 +10,7 @@ const ChatGPT = () => {
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
   const [loadingResponse, setLoadingResponse] = useState(false);
+  const [errorResponse, setErrorResponse] = useState(false);
   const [checked, setChecked] = useState(false);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
@@ -37,16 +38,21 @@ const ChatGPT = () => {
       },
     });
 
-    response.json().then((data) => {
-      setMessages([
-        ...messages,
-        {
-          isChatGPT: true,
-          text: data?.text,
-        },
-      ]);
+    if (response.status === 200) {
+      response.json().then((data) => {
+        setMessages([
+          ...messages,
+          {
+            isChatGPT: true,
+            text: data?.text,
+          },
+        ]);
+        setLoadingResponse(false);
+      });
+    } else {
       setLoadingResponse(false);
-    });
+      setErrorResponse(true);
+    }
   };
 
   const sendPrompt = (prompt: string) => {
@@ -149,6 +155,9 @@ const ChatGPT = () => {
                   </div>
                   <p className="px-6">
                     {loadingResponse ? "Loading..." : null}
+                    {errorResponse
+                      ? "Oops, error occured, please try again."
+                      : null}
                   </p>
                   <form
                     onSubmit={handleSubmit}
@@ -160,6 +169,7 @@ const ChatGPT = () => {
                         className="h-full border-solid border-2 border-gray-700 rounded-lg relative left-0 top-0 px-3 w-full"
                         onChange={(e) => {
                           setPrompt(e.target.value);
+                          setErrorResponse(false);
                         }}
                         value={prompt || ""}
                         placeholder={"Ask something"}
