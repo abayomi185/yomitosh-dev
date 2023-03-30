@@ -134,7 +134,6 @@ const ChatGPT = () => {
                       onChange={() => {
                         // set checked to opposite of current value
                         setChecked(!checked);
-                        console.log(checked);
                       }}
                       className="w-4 h-4 accent-green-600 mr-2 align-middle"
                     />
