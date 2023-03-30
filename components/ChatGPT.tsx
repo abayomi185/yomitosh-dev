@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { FaTimesCircle } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
 
@@ -231,14 +232,14 @@ const openaiSVG = (
 const ChatDialog = ({ content, chatgpt }) => {
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 table mb-2 ${
+      className={`rounded-2xl px-3 py-3 text-gray-200 table mb-2 break-words ${
         !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700"
       }`}
     >
       {chatgpt && (
         <p className="border-b border-solid border-gray-500 mb-2">A.G.I Yomi</p>
       )}
-      <ReactMarkdown>{content}</ReactMarkdown>
+      <ReactMarkdown children={content} remarkPlugins={[remarkGfm]} />
     </div>
   );
 };
