@@ -16,8 +16,7 @@ loadChatGPT();
 const createCompletion = async (
   prompt: string,
   userMessages: ChatCompletionRequestMessage[],
-  // model: GPTModel
-  model: "gpt-4-32k"
+  model: GPTModel
 ) => {
   const response = await openai.createChatCompletion({
     model: model,
@@ -48,7 +47,6 @@ const createCompletion = async (
     ],
     temperature: 0.7,
     // max_tokens: 4096,
-    max_tokens: 32768,
   });
   return response;
 };
