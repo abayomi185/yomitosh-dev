@@ -16,7 +16,8 @@ loadChatGPT();
 const createCompletion = async (
   prompt: string,
   userMessages: ChatCompletionRequestMessage[],
-  model: GPTModel
+  // model: GPTModel
+  model: "gpt-4-32k"
 ) => {
   const response = await openai.createChatCompletion({
     model: model,
