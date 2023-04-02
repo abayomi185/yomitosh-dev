@@ -1,3 +1,7 @@
+export const config = {
+  runtime: "edge",
+};
+
 import { GPTModel } from "@utils/chatgpt";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
