@@ -66,23 +66,10 @@ const ChatGPT = () => {
         if (done) break;
 
         const decodedValue = decoder.decode(value);
-        const lines = decodedValue.split("\n");
 
-        lines.map((line) => {
-          // remove "data:" prefix before parsing JSON
-          const messageChunk = line.substring(6);
-
-          if (messageChunk && messageChunk !== "[DONE]") {
-            const parsedMessageChunk =
-              JSON.parse(messageChunk).choices[0].delta?.content ?? "";
-
-            message = message + parsedMessageChunk;
-
-            // Create a new message that can be updated
-            setMessages([...messages, { isChatGPT: true, text: "" }]);
-            updateStreamedMessage(message);
-          }
-        });
+        message = message + decodedValue;
+        setMessages([...messages, { isChatGPT: true, text: "" }]);
+        updateStreamedMessage(message);
       }
 
       setLoadingResponse(false);

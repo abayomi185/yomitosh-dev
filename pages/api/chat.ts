@@ -2,74 +2,106 @@ export const config = {
   runtime: "edge",
 };
 
-import { GPTModel } from "@utils/chatgpt";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
+import { createParser } from "eventsource-parser";
+import type { NextFetchEvent, NextRequest } from "next/server";
+import { GPTModel, OpenAIMessage } from "@utils/chatgpt";
 
-let openai: OpenAIApi;
+const OPENAI_COMPLETIONS_ENDPOINT =
+  "https://api.openai.com/v1/chat/completions";
 
-const loadChatGPT = () => {
-  const configuration = new Configuration({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  openai = new OpenAIApi(configuration);
-};
+interface OpenAIPayload {
+  model: GPTModel;
+  temperature: number;
+  stream: boolean;
+  messages: OpenAIMessage[];
+}
 
-loadChatGPT();
+export default async (req: NextRequest, context: NextFetchEvent) => {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
-const createCompletion = async (
-  prompt: string,
-  userMessages: ChatCompletionRequestMessage[],
-  model: GPTModel
-) => {
-  const response = await openai.createChatCompletion(
-    {
-      model: model,
-      messages: [
-        {
-          role: "system",
-          content:
-            "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
-        },
-        {
-          role: "system",
-          content:
-            "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
+  const {
+    prompt,
+    userMessages,
+    model,
+  }: { prompt: string; userMessages: OpenAIMessage[]; model: GPTModel } =
+    await req.json();
+
+  const payload: OpenAIPayload = {
+    model: model,
+    temperature: 0.7,
+    stream: true,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
+      },
+      {
+        role: "system",
+        content:
+          "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
             at The University of Sheffield. Yomi then went on to study Artificial Intelligence \
             at The University of Loughborough.",
-        },
-        {
-          role: "system",
-          content: "Yomi is a real person and not a fictional character.",
-        },
-        {
-          role: "system",
-          content:
-            "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
-        },
-        ...userMessages,
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.7,
-      stream: true,
-      // max_tokens: 4096,
+      },
+      {
+        role: "system",
+        content: "Yomi is a real person and not a fictional character.",
+      },
+      {
+        role: "system",
+        content:
+          "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
+      },
+      ...userMessages,
+      { role: "user", content: prompt },
+    ],
+  };
+
+  const res = await fetch(OPENAI_COMPLETIONS_ENDPOINT, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
     },
-    { responseType: "stream" }
-  );
-  return response;
-};
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 
-export default async (req: NextApiRequest, res: NextApiResponse) => {
+  const stream = new ReadableStream({
+    async start(controller) {
+      function onParse(event: any) {
+        if (event.type === "event") {
+          const data = event.data;
+          if (data === "[DONE]") {
+            controller.close();
+            return;
+          }
+          try {
+            const json = JSON.parse(data);
+            const text = json.choices[0].delta?.content;
+
+            if (!text) {
+              return;
+            }
+
+            const queue = encoder.encode(text);
+            controller.enqueue(queue);
+          } catch (e) {
+            controller.error(e);
+          }
+        }
+      }
+
+      const parser = createParser(onParse);
+      for await (const chunk of res.body as any) {
+        parser.feed(decoder.decode(chunk));
+      }
+    },
+  });
+
   try {
-    const { prompt, userMessages, model } = req.body;
-    const chatResponse = await createCompletion(prompt, userMessages, model);
-
-    res.setHeader("Content-Type", "application/octet-stream");
-
-    //@ts-ignore
-    chatResponse.data.pipe(res);
+    return new Response(stream);
   } catch (error) {
-    res.json({ message: "error occured" });
-    res.status(400).end();
+    return new Response(error.message, { status: 500 });
   }
 };

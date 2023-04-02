@@ -11,3 +11,8 @@ export interface IMessage {
   text: string;
   data?: any;
 }
+
+export interface OpenAIMessage {
+  role: "system" | "user";
+  content: string;
+}

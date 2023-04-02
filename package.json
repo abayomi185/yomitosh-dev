@@ -22,6 +22,7 @@
   "homepage": "https://github.com/montoulieu/link-ent#readme",
   "dependencies": {
     "@vercel/analytics": "^0.1.11",
+    "eventsource-parser": "^1.0.0",
     "next": "^13.0.0",
     "openai": "^3.2.1",
     "prop-types": "^15.8.1",
