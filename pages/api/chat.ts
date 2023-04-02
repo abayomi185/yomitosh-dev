@@ -64,21 +64,6 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
 
     //@ts-ignore
     chatResponse.data.pipe(res);
-
-    // // @ts-ignore
-    // chatResponse.data.on("data", (data) => {
-    //   console.log(data.choices);
-    //   res.pipe(data);
-    //   // res.write(data);
-    //   if (data === "[DONE]") {
-    //     res.end();
-    //   }
-    // });
-
-    // res
-    //   .status(200)
-    //   .json({ text: chatResponse.data.choices[0].message?.content });
-    // res.end();
   } catch (error) {
     res.json({ message: "error occured" });
     res.status(400).end();

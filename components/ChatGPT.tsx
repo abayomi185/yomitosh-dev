@@ -51,6 +51,11 @@ const ChatGPT = () => {
       },
     });
 
+    if (response.status === 400) {
+      setLoadingResponse(false);
+      setErrorResponse(true);
+    }
+
     try {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
