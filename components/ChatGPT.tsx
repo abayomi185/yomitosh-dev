@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/router";
 import { FaTimesCircle } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -6,6 +7,8 @@ import remarkGfm from "remark-gfm";
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
 
 const ChatGPT = () => {
+  const router = useRouter();
+
   const [showModal, setShowModal] = useState(false);
 
   const [prompt, setPrompt] = useState("");
@@ -98,6 +101,11 @@ const ChatGPT = () => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);
   };
+
+  useEffect(() => {
+    const { chat } = router.query;
+    if (chat === "true") setShowModal(true);
+  }, [router.isReady]);
 
   useEffect(() => {
     promptCounter > 0 && getCompletion(messages.at(-1)?.text);
