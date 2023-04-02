@@ -18,36 +18,40 @@ const createCompletion = async (
   userMessages: ChatCompletionRequestMessage[],
   model: GPTModel
 ) => {
-  const response = await openai.createChatCompletion({
-    model: model,
-    messages: [
-      {
-        role: "system",
-        content:
-          "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
-      },
-      {
-        role: "system",
-        content:
-          "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
-          at The University of Sheffield. Yomi then went on to study Artificial Intelligence \
-          at The University of Loughborough.",
-      },
-      {
-        role: "system",
-        content: "Yomi is a real person and not a fictional character.",
-      },
-      {
-        role: "system",
-        content:
-          "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
-      },
-      ...userMessages,
-      { role: "user", content: prompt },
-    ],
-    temperature: 0.7,
-    // max_tokens: 4096,
-  });
+  const response = await openai.createChatCompletion(
+    {
+      model: model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
+        },
+        {
+          role: "system",
+          content:
+            "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
+            at The University of Sheffield. Yomi then went on to study Artificial Intelligence \
+            at The University of Loughborough.",
+        },
+        {
+          role: "system",
+          content: "Yomi is a real person and not a fictional character.",
+        },
+        {
+          role: "system",
+          content:
+            "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
+        },
+        ...userMessages,
+        { role: "user", content: prompt },
+      ],
+      temperature: 0.7,
+      stream: true,
+      // max_tokens: 4096,
+    },
+    { responseType: "stream" }
+  );
   return response;
 };
 
@@ -56,10 +60,25 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     const { prompt, userMessages, model } = req.body;
     const chatResponse = await createCompletion(prompt, userMessages, model);
 
-    res
-      .status(200)
-      .json({ text: chatResponse.data.choices[0].message?.content });
-    res.end();
+    res.setHeader("Content-Type", "application/octet-stream");
+
+    //@ts-ignore
+    chatResponse.data.pipe(res);
+
+    // // @ts-ignore
+    // chatResponse.data.on("data", (data) => {
+    //   console.log(data.choices);
+    //   res.pipe(data);
+    //   // res.write(data);
+    //   if (data === "[DONE]") {
+    //     res.end();
+    //   }
+    // });
+
+    // res
+    //   .status(200)
+    //   .json({ text: chatResponse.data.choices[0].message?.content });
+    // res.end();
   } catch (error) {
     res.json({ message: "error occured" });
     res.status(400).end();

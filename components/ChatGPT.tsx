@@ -18,6 +18,18 @@ const ChatGPT = () => {
 
   const messagesEndRef = useRef(null);
 
+  function updateStreamedMessage(message: string) {
+    setMessages((prevItems) => {
+      const lastMessageIndex = prevItems.length - 1;
+      const newMessages = [...prevItems];
+      newMessages[lastMessageIndex] = {
+        isChatGPT: true,
+        text: message,
+      };
+      return newMessages;
+    });
+  }
+
   const getCompletion = async (prompt: string) => {
     const response = await fetch("api/chat", {
       method: "POST",
@@ -39,18 +51,38 @@ const ChatGPT = () => {
       },
     });
 
-    if (response.status === 200) {
-      response.json().then((data) => {
-        setMessages([
-          ...messages,
-          {
-            isChatGPT: true,
-            text: data?.text,
-          },
-        ]);
-        setLoadingResponse(false);
-      });
-    } else {
+    try {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let message = ""; // Message built from parsed chunks
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const decodedValue = decoder.decode(value);
+        const lines = decodedValue.split("\n");
+
+        lines.map((line) => {
+          // remove "data:" prefix before parsing JSON
+          const messageChunk = line.substring(6);
+
+          if (messageChunk && messageChunk !== "[DONE]") {
+            const parsedMessageChunk =
+              JSON.parse(messageChunk).choices[0].delta?.content ?? "";
+
+            message = message + parsedMessageChunk;
+
+            // Create a new message that can be updated
+            setMessages([...messages, { isChatGPT: true, text: "" }]);
+            updateStreamedMessage(message);
+          }
+        });
+      }
+
+      setLoadingResponse(false);
+    } catch (error) {
+      console.log(error);
       setLoadingResponse(false);
       setErrorResponse(true);
     }
