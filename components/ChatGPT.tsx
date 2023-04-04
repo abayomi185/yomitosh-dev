@@ -1,7 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import { FaTimesCircle } from "react-icons/fa";
+import {
+  FaPaperPlane,
+  FaTimesCircle,
+  FaRegClipboard,
+  FaCheck,
+} from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
 
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
@@ -13,6 +20,9 @@ const ChatGPT = () => {
 
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
+
+  const [textAreaRows, setTextAreaRows] = useState(1);
+
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [errorResponse, setErrorResponse] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -112,6 +122,13 @@ const ChatGPT = () => {
   }, [router.isReady]);
 
   useEffect(() => {
+    const textRows = prompt.split("\n").length;
+    const rows =
+      textRows >= 2 && textRows <= 3 ? textRows : textRows > 3 ? 3 : 1;
+    setTextAreaRows(rows);
+  }, [prompt]);
+
+  useEffect(() => {
     promptCounter > 0 && getCompletion(messages.at(-1)?.text);
   }, [promptCounter]);
 
@@ -179,7 +196,7 @@ const ChatGPT = () => {
                 </div>
                 {/*body*/}
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
-                  <div className="overflow-scroll grow mb-4 mx-6">
+                  <div className="overflow-scroll grow mb-4 mx-6 flex flex-col">
                     {messages.map((message, index) => (
                       <ChatDialog
                         key={index}
@@ -197,11 +214,11 @@ const ChatGPT = () => {
                   </p>
                   <form
                     onSubmit={handleSubmit}
-                    className="h-16 bottom-0 left-0 flex w-full px-6 min-h-[2.5rem]"
+                    className="min-h-8 max-h-24 bottom-0 left-0 flex w-full px-6"
                   >
                     <div className="inline h-full relative flex-1 w-full mr-2">
                       <textarea
-                        className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 py-2 w-full"
+                        className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 pt-3 pb-1 w-full"
                         onChange={(e) => {
                           setPrompt(e.target.value);
                           setErrorResponse(false);
@@ -213,6 +230,7 @@ const ChatGPT = () => {
                           }
                         }}
                         value={prompt || ""}
+                        rows={textAreaRows}
                         placeholder={"Ask something"}
                       />
                     </div>
@@ -270,17 +288,71 @@ const openaiSVG = (
   </svg>
 );
 
+const CodeCopyBtn = ({ children }) => {
+  const [copy, setCopy] = useState(false);
+
+  const copyCode = () => {
+    navigator.clipboard.writeText(children[0].props.children[0]);
+    setCopy(true);
+    setTimeout(() => {
+      setCopy(false);
+    }, 500);
+  };
+  return (
+    <div
+      className="cursor-pointer absolute right-2 h-8 w-16 hover:opacity-80 bg-green-600 rounded-lg flex items-center justify-center"
+      onClick={copyCode}
+    >
+      {!copy ? <FaRegClipboard size="1.25rem" /> : <FaCheck size="1.25rem" />}
+    </div>
+  );
+};
+
 const ChatDialog = ({ content, chatgpt }) => {
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 table mb-2 break-words ${
-        !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700"
+      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words ${
+        !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
       }`}
     >
       {chatgpt && (
         <p className="border-b border-solid border-gray-500 mb-2">A.G.I Yomi</p>
       )}
-      <ReactMarkdown children={content} remarkPlugins={[remarkGfm]} />
+      <ReactMarkdown
+        children={content}
+        remarkPlugins={[remarkGfm]}
+        components={{
+          pre: ({ children }) => (
+            <pre className="relative my-2 p-2 bg-gray-600 rounded-lg w-full">
+              <CodeCopyBtn>{children}</CodeCopyBtn>
+              {children}
+            </pre>
+          ),
+          code({
+            node,
+            inline,
+            className = "overflow-auto block",
+            children,
+            ...props
+          }) {
+            const match = /language-(\w+)/.exec(className || "");
+            return !inline && match ? (
+              <SyntaxHighlighter
+                style={a11yDark}
+                language={match[1]}
+                PreTag="div"
+                {...props}
+              >
+                {String(children).replace(/\n$/, "")}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      />
     </div>
   );
 };
