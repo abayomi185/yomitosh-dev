@@ -97,7 +97,11 @@ const ChatGPT = () => {
     });
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (
+    event:
+      | React.FormEvent<HTMLFormElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);
   };
@@ -193,15 +197,20 @@ const ChatGPT = () => {
                   </p>
                   <form
                     onSubmit={handleSubmit}
-                    className="h-10 bottom-0 left-0 flex w-full px-6 min-h-[2.5rem]"
+                    className="h-16 bottom-0 left-0 flex w-full px-6 min-h-[2.5rem]"
                   >
                     <div className="inline h-full relative flex-1 w-full mr-2">
-                      <input
-                        type={"text"}
-                        className="h-full border-solid border-2 border-gray-700 rounded-lg relative left-0 top-0 px-3 w-full"
+                      <textarea
+                        className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 py-2 w-full"
                         onChange={(e) => {
                           setPrompt(e.target.value);
                           setErrorResponse(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSubmit(e);
+                          }
                         }}
                         value={prompt || ""}
                         placeholder={"Ask something"}
