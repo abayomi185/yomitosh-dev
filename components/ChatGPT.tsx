@@ -196,7 +196,7 @@ const ChatGPT = () => {
                 </div>
                 {/*body*/}
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
-                  <div className="overflow-scroll grow mb-4 mx-6 flex flex-col">
+                  <div className="overflow-x-auto grow mb-4 mx-6 flex flex-col">
                     {messages.map((message, index) => (
                       <ChatDialog
                         key={index}
