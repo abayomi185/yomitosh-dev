@@ -311,7 +311,7 @@ const CodeCopyBtn = ({ children }) => {
 const ChatDialog = ({ content, chatgpt }) => {
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words ${
+      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${
         !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
       }`}
     >
