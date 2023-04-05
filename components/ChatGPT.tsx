@@ -331,7 +331,7 @@ const ChatDialog = ({ content, chatgpt }) => {
           code({
             node,
             inline,
-            className = "overflow-auto",
+            className = "overflow-auto block",
             children,
             ...props
           }) {
