@@ -300,10 +300,10 @@ const CodeCopyBtn = ({ children }) => {
   };
   return (
     <div
-      className="cursor-pointer absolute right-2 h-8 w-16 hover:opacity-80 bg-green-600 rounded-lg flex items-center justify-center"
+      className="cursor-pointer h-6 w-16 mb-1 ml-auto hover:opacity-80 bg-green-600 rounded-lg flex items-center justify-center"
       onClick={copyCode}
     >
-      {!copy ? <FaRegClipboard size="1.25rem" /> : <FaCheck size="1.25rem" />}
+      {!copy ? <FaRegClipboard size="1rem" /> : <FaCheck size="1.25rem" />}
     </div>
   );
 };
@@ -311,7 +311,7 @@ const CodeCopyBtn = ({ children }) => {
 const ChatDialog = ({ content, chatgpt }) => {
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words ${
+      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${
         !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
       }`}
     >
@@ -323,15 +323,15 @@ const ChatDialog = ({ content, chatgpt }) => {
         remarkPlugins={[remarkGfm]}
         components={{
           pre: ({ children }) => (
-            <pre className="relative my-2 p-2 bg-gray-600 rounded-lg w-full">
+            <pre className="relative my-2 p-2 mb-4 bg-gray-600 rounded-lg w-full">
               <CodeCopyBtn>{children}</CodeCopyBtn>
-              {children}
+              <div className="overflow-auto pb-4">{children}</div>
             </pre>
           ),
           code({
             node,
             inline,
-            className = "overflow-auto block",
+            className = "overflow-auto",
             children,
             ...props
           }) {
