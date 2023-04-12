@@ -232,7 +232,7 @@ const ChatGPT = () => {
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
                   <div
                     ref={messageBoxRef}
-                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col"
+                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-green-600"
                   >
                     {messages.map((message, index) => (
                       <ChatDialog
