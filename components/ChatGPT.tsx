@@ -25,11 +25,17 @@ const ChatGPT = () => {
 
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [errorResponse, setErrorResponse] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const [hasReachedChatLimit, setHasReachedChatLimit] = useState(false);
+  const [bypassChatLimit, setBypassChatLimit] = useState(false);
+
+  const [checkedGPT4, setCheckedGPT4] = useState(false);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
 
   const messagesEndRef = useRef(null);
+  const messageBoxRef = useRef(null);
+
+  const abortController = useRef(null);
 
   function updateStreamedMessage(message: string) {
     setMessages((prevItems) => {
@@ -43,8 +49,24 @@ const ChatGPT = () => {
     });
   }
 
+  const resetMessages = () => {
+    setMessages([]);
+    setPrompt("");
+    setPromptCounter(0);
+    setLoadingResponse(false);
+    abortController.current && abortController.current.abort();
+  };
+
+  const bypassSoftLimit = () => {
+    setBypassChatLimit(!bypassChatLimit);
+    setHasReachedChatLimit(false);
+  };
+
   const getCompletion = async (prompt: string) => {
+    abortController.current = new AbortController();
+
     const response = await fetch("api/chat", {
+      signal: abortController.current.signal,
       method: "POST",
       body: JSON.stringify({
         prompt: prompt,
@@ -57,7 +79,7 @@ const ChatGPT = () => {
             }
           }),
         ],
-        model: checked ? GPTModel.GPT4 : GPTModel.GPT3,
+        model: checkedGPT4 ? GPTModel.GPT4 : GPTModel.GPT3,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -102,9 +124,18 @@ const ChatGPT = () => {
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-    });
+    if (messageBoxRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messageBoxRef.current;
+      console.log(clientHeight);
+      console.log(scrollTop);
+      console.log(scrollHeight);
+      console.log("sum", scrollTop + clientHeight - scrollHeight);
+      if (scrollTop + clientHeight - scrollHeight > -50) {
+        messagesEndRef.current?.scrollIntoView({
+          behavior: "smooth",
+        });
+      }
+    }
   };
 
   const handleSubmit = (
@@ -134,6 +165,9 @@ const ChatGPT = () => {
 
   useEffect(() => {
     scrollToBottom();
+    if (messages.length > 10 && !bypassChatLimit) {
+      setHasReachedChatLimit(true);
+    }
   }, [messages]);
 
   useEffect(() => {
@@ -184,10 +218,10 @@ const ChatGPT = () => {
                   <label className="cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={checked}
+                      checked={checkedGPT4}
                       onChange={() => {
-                        // set checked to opposite of current value
-                        setChecked(!checked);
+                        // set checkedGPT4 to opposite of current value
+                        setCheckedGPT4(!checkedGPT4);
                       }}
                       className="w-4 h-4 accent-green-600 mr-2 align-middle"
                     />
@@ -196,7 +230,10 @@ const ChatGPT = () => {
                 </div>
                 {/*body*/}
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
-                  <div className="overflow-x-auto grow mb-4 mx-6 flex flex-col">
+                  <div
+                    ref={messageBoxRef}
+                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col"
+                  >
                     {messages.map((message, index) => (
                       <ChatDialog
                         key={index}
@@ -211,6 +248,27 @@ const ChatGPT = () => {
                     {errorResponse
                       ? "Oops, error occured, please try again."
                       : null}
+                    {hasReachedChatLimit ? (
+                      <div className="flex items-center mb-2">
+                        <p>Chat soft limit reached {"->"}</p>
+                        <button
+                          className="bg-green-600 rounded-xl py-2 px-3 ml-3 text-white hover:bg-green-800 transition"
+                          onClick={() => {
+                            resetMessages();
+                          }}
+                        >
+                          Reset
+                        </button>
+                        <button
+                          className="bg-white rounded-xl py-2 px-3 ml-auto text-white hover:bg-gray-100 transition flex relative"
+                          onClick={() => {
+                            bypassSoftLimit();
+                          }}
+                        >
+                          Bypass
+                        </button>
+                      </div>
+                    ) : null}
                   </p>
                   <form
                     onSubmit={handleSubmit}
