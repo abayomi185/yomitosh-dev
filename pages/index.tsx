@@ -27,7 +27,7 @@ function IndexPage() {
 
       <SocialBar />
 
-      { /* <ChatGPT /> */ }
+      <ChatGPT />
 
       {/* List of Links generated from links.json */}
       <LinkList />
