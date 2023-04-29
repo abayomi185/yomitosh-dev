@@ -276,10 +276,10 @@ const ChatGPT = () => {
                     </span>
                   </button>
                 </div>
-                <div className="px-5 py-2 border-b border-solid border-slate-200 flex justify-between">
-                  <div className="flex mr-auto relative">
+                <div className="px-5 py-2 border-b border-solid border-slate-200 flex flex-wrap justify-between">
+                  <div className="flex mr-auto ml-auto sm:ml-0 relative my-1 h-12 sm:h-8">
                     <button
-                      className="px-3 rounded bg-red-300 hover:bg-gray-300"
+                      className="px-3 w-12 sm:w-8 rounded bg-red-300 hover:bg-gray-300"
                       onClick={() => {
                         deleteAllStoredChat();
                         // deleteStoredChat();
@@ -288,7 +288,7 @@ const ChatGPT = () => {
                       {"x"}
                     </button>
                     <button
-                      className="px-3 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
                       onClick={() => {
                         retrieveStoredMessage(Action.BACK);
                       }}
@@ -308,7 +308,7 @@ const ChatGPT = () => {
                       {`Chat History: ${storedMessageIndex}`}
                     </button>
                     <button
-                      className="px-3 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
                       onClick={() => {
                         retrieveStoredMessage(Action.FORWARD);
                       }}
@@ -320,7 +320,7 @@ const ChatGPT = () => {
                       {">"}
                     </button>
                     <button
-                      className="px-3 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
+                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
                       onClick={() => {
                         createNewChat();
                       }}
@@ -341,7 +341,7 @@ const ChatGPT = () => {
                       className="w-4 h-4 ml-2 accent-green-600 mr-2 align-middle cursor-pointer"
                     />
                   </label>
-                  <label className="ml-8">
+                  <label className="ml-2 flex items-center">
                     Access Key:{" "}
                     <input
                       type="password"
@@ -349,7 +349,7 @@ const ChatGPT = () => {
                       onChange={(event) => {
                         setAccessKey(event.target.value);
                       }}
-                      className="border-gray-300 border-2 rounded px-1 py-0.5 w-28"
+                      className="border-gray-300 border-2 rounded px-1 py-0.5 w-28 ml-2"
                     />
                   </label>
                 </div>

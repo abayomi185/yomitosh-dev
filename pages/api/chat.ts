@@ -34,8 +34,8 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
     accessKey: string;
   } = await req.json();
 
-  // if (accessKey === ACCESS_KEY || userMessages.length < 5) {
-  if (accessKey === ACCESS_KEY) {
+  if (accessKey === ACCESS_KEY || userMessages.length < 5) {
+    // if (accessKey === ACCESS_KEY) {
     const payload: OpenAIPayload = {
       model: model,
       temperature: 0.7,
