@@ -155,7 +155,7 @@ const ChatGPT = () => {
       localStorage.getItem("storedMessages")
     ) || [[]];
     setStoredMessages(messagesFromStorage);
-    setStoredMessageIndex(messagesFromStorage.length - 1);
+    setStoredMessageIndex(messagesFromStorage?.length - 1);
     setStoredMessagesLoaded(true);
   };
 
@@ -182,7 +182,7 @@ const ChatGPT = () => {
     if (isChatHistoryEnabled) {
       if (storedMessagesLoaded) {
         const messagesToStore = storedMessages;
-        if (messages.length !== 0) {
+        if (messages?.length !== 0) {
           messagesToStore[storedMessageIndex] = messages;
         }
         setStoredMessages(messagesToStore);
@@ -230,7 +230,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
-  }, [storedMessages.map((message) => message.length)]);
+  }, [storedMessages.map((message) => message?.length)]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
@@ -313,7 +313,7 @@ const ChatGPT = () => {
                         retrieveStoredMessage(Action.FORWARD);
                       }}
                       disabled={
-                        storedMessageIndex >= storedMessages.length - 1 ||
+                        storedMessageIndex >= storedMessages?.length - 1 ||
                         loadingResponse
                       }
                     >
@@ -324,7 +324,7 @@ const ChatGPT = () => {
                       onClick={() => {
                         createNewChat();
                       }}
-                      disabled={messages.length <= 0 || loadingResponse}
+                      disabled={messages?.length <= 0 || loadingResponse}
                     >
                       {"+"}
                     </button>
@@ -357,7 +357,7 @@ const ChatGPT = () => {
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
                   <div
                     ref={messageBoxRef}
-                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-green-600"
+                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
                   >
                     {messages.map((message, index) => (
                       <ChatDialog
