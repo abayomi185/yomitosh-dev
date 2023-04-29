@@ -12,9 +12,20 @@ import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
 
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
+import { Action } from "@utils/util";
 
 const ChatGPT = () => {
   const router = useRouter();
+
+  const [accessKey, setAccessKey] = useState("");
+
+  const [isChatHistoryEnabled, setChatHistory] = useState(true);
+  const [storedMessages, setStoredMessages] = useState<{
+    [key: string]: IMessage[];
+  }>({});
+  const [storedMessageIndex, setStoredMessageIndex] = useState<number>(0);
+  const [storedMessagesLoaded, setStoredMessagesLoaded] =
+    useState<boolean>(false);
 
   const [showModal, setShowModal] = useState(false);
 
@@ -25,8 +36,6 @@ const ChatGPT = () => {
 
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [errorResponse, setErrorResponse] = useState(false);
-  const [hasReachedChatLimit, setHasReachedChatLimit] = useState(false);
-  const [bypassChatLimit, setBypassChatLimit] = useState(false);
 
   const [checkedGPT4, setCheckedGPT4] = useState(false);
 
@@ -57,11 +66,6 @@ const ChatGPT = () => {
     abortController.current && abortController.current.abort();
   };
 
-  const bypassSoftLimit = () => {
-    setBypassChatLimit(!bypassChatLimit);
-    setHasReachedChatLimit(false);
-  };
-
   const getCompletion = async (prompt: string) => {
     abortController.current = new AbortController();
 
@@ -80,6 +84,7 @@ const ChatGPT = () => {
           }),
         ],
         model: checkedGPT4 ? GPTModel.GPT4 : GPTModel.GPT3,
+        accessKey: accessKey,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -123,16 +128,62 @@ const ChatGPT = () => {
     setLoadingResponse(true);
   };
 
-  const scrollToBottom = () => {
+  const scrollToBottom = (immediately: boolean = false) => {
     if (messageBoxRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = messageBoxRef.current;
-      console.log(clientHeight);
-      console.log(scrollTop);
-      console.log(scrollHeight);
-      console.log("sum", scrollTop + clientHeight - scrollHeight);
-      if (scrollTop + clientHeight - scrollHeight > -50) {
-        messagesEndRef.current?.scrollIntoView({
-          behavior: "smooth",
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const retrieveStoredMessage = (direction: Action) => {
+    if (direction === Action.BACK) {
+      storedMessageIndex - 1 >= 0 &&
+        setStoredMessageIndex(storedMessageIndex - 1);
+      // storeMessages();
+    }
+    if (direction === Action.FORWARD) {
+      storedMessageIndex + 1 <= Object.keys(storedMessages).length &&
+        setStoredMessageIndex(storedMessageIndex + 1);
+      // storeMessages();
+    }
+  };
+
+  const getAllStoredMessages = () => {
+    const messagesFromStorage = JSON.parse(
+      localStorage.getItem("storedMessages")
+    );
+    setStoredMessages(messagesFromStorage);
+    setStoredMessageIndex(Object.keys(messagesFromStorage).length - 1);
+    setStoredMessagesLoaded(true);
+  };
+
+  // const clearStoredMessages = () => {
+  //   localStorage.clear();
+  // };
+
+  const createNewChat = () => {
+    resetMessages();
+    setStoredMessageIndex(storedMessageIndex + 1);
+  };
+
+  const deleteStoredChat = () => {
+    // use storedMessageIndex and save to localStorage
+  };
+
+  const deleteAllStoredChat = () => {
+    resetMessages();
+    setStoredMessageIndex(0);
+    setStoredMessages({});
+    localStorage.clear();
+  };
+
+  const storeMessages = () => {
+    if (isChatHistoryEnabled) {
+      if (storedMessagesLoaded) {
+        setStoredMessages({
+          ...storedMessages,
+          [storedMessageIndex]: messages,
         });
       }
     }
@@ -146,6 +197,10 @@ const ChatGPT = () => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);
   };
+
+  useEffect(() => {
+    getAllStoredMessages();
+  }, []);
 
   useEffect(() => {
     const { chat } = router.query;
@@ -165,10 +220,20 @@ const ChatGPT = () => {
 
   useEffect(() => {
     scrollToBottom();
-    if (messages.length > 10 && !bypassChatLimit) {
-      setHasReachedChatLimit(true);
-    }
+    storeMessages();
   }, [messages]);
+
+  useEffect(() => {
+    if (storedMessageIndex < Object.keys(storedMessages).length) {
+      setMessages(storedMessages[storedMessageIndex]);
+    } else {
+      resetMessages();
+    }
+  }, [storedMessageIndex]);
+
+  useEffect(() => {
+    localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
+  }, [storedMessages]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
@@ -203,7 +268,7 @@ const ChatGPT = () => {
               {/*content*/}
               <div className="border-0 rounded-2xl shadow-lg relative flex flex-col w-full h-full bg-white outline-none focus:outline-none">
                 {/*header*/}
-                <div className="flex items-start justify-between p-5 border-b border-solid border-slate-200 rounded-t">
+                <div className="flex items-start justify-between px-4 py-2 border-b border-solid border-slate-200 rounded-t">
                   <h3 className="text-3xl">A.G.I. Yomi</h3>
                   <button
                     className="p-1 ml-auto bg-transparent border-0 text-black opacity-75 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
@@ -214,8 +279,62 @@ const ChatGPT = () => {
                     </span>
                   </button>
                 </div>
-                <div className="px-5 py-3 border-b border-solid border-slate-200">
-                  <label className="cursor-pointer">
+                <div className="px-5 py-2 border-b border-solid border-slate-200 flex justify-between">
+                  <div className="flex mr-auto relative">
+                    <button
+                      className="px-3 rounded bg-red-300 hover:bg-gray-300"
+                      onClick={() => {
+                        deleteAllStoredChat();
+                        // deleteStoredChat();
+                      }}
+                    >
+                      {"x"}
+                    </button>
+                    <button
+                      className="px-3 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                      onClick={() => {
+                        retrieveStoredMessage(Action.BACK);
+                      }}
+                      disabled={storedMessageIndex === 0 || loadingResponse}
+                    >
+                      {"<"}
+                    </button>
+                    <button
+                      className={`px-2 ml-1 rounded
+                          ${
+                            isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
+                          }`}
+                      onClick={() => {
+                        setChatHistory(!isChatHistoryEnabled);
+                      }}
+                    >
+                      Chat History
+                    </button>
+                    <button
+                      className="px-3 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                      onClick={() => {
+                        retrieveStoredMessage(Action.FORWARD);
+                      }}
+                      disabled={
+                        storedMessageIndex >=
+                          Object.keys(storedMessages).length - 1 ||
+                        loadingResponse
+                      }
+                    >
+                      {">"}
+                    </button>
+                    <button
+                      className="px-3 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
+                      onClick={() => {
+                        createNewChat();
+                      }}
+                      disabled={messages.length <= 0 || loadingResponse}
+                    >
+                      {"+"}
+                    </button>
+                  </div>
+                  <label className="cursor-pointer flex items-center">
+                    Use GPT-4:
                     <input
                       type="checkbox"
                       checked={checkedGPT4}
@@ -223,9 +342,19 @@ const ChatGPT = () => {
                         // set checkedGPT4 to opposite of current value
                         setCheckedGPT4(!checkedGPT4);
                       }}
-                      className="w-4 h-4 accent-green-600 mr-2 align-middle"
+                      className="w-4 h-4 ml-2 accent-green-600 mr-2 align-middle cursor-pointer"
                     />
-                    Use GPT-4
+                  </label>
+                  <label className="ml-8">
+                    Access Key:{" "}
+                    <input
+                      type="password"
+                      value={accessKey}
+                      onChange={(event) => {
+                        setAccessKey(event.target.value);
+                      }}
+                      className="border-gray-300 border-2 rounded px-1 py-0.5 w-28"
+                    />
                   </label>
                 </div>
                 {/*body*/}
@@ -248,27 +377,6 @@ const ChatGPT = () => {
                     {errorResponse
                       ? "Oops, error occured, please try again."
                       : null}
-                    {hasReachedChatLimit ? (
-                      <div className="flex items-center mb-2">
-                        <p>Chat soft limit reached {"->"}</p>
-                        <button
-                          className="bg-green-600 rounded-xl py-2 px-3 ml-3 text-white hover:bg-green-800 transition"
-                          onClick={() => {
-                            resetMessages();
-                          }}
-                        >
-                          Reset
-                        </button>
-                        <button
-                          className="bg-white rounded-xl py-2 px-3 ml-auto text-white hover:bg-gray-100 transition flex relative"
-                          onClick={() => {
-                            bypassSoftLimit();
-                          }}
-                        >
-                          Bypass
-                        </button>
-                      </div>
-                    ) : null}
                   </p>
                   <form
                     onSubmit={handleSubmit}
