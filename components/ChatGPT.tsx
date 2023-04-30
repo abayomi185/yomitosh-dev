@@ -341,9 +341,9 @@ const ChatGPT = () => {
                     />
                   </label>
                   <label className="ml-2 flex items-center">
-                    Access Key:{" "}
                     <input
                       type="password"
+                      placeholder="access key"
                       value={accessKey}
                       onChange={(event) => {
                         setAccessKey(event.target.value);
