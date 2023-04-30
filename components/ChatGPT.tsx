@@ -22,7 +22,7 @@ const ChatGPT = () => {
   const [isChatHistoryEnabled, setChatHistory] = useState(true);
 
   const [storedMessages, setStoredMessages] = useState<IMessage[][]>([[]]);
-  const [storedMessageIndex, setStoredMessageIndex] = useState<number>(-1);
+  const [storedMessageIndex, setStoredMessageIndex] = useState<number>();
   const [storedMessagesLoaded, setStoredMessagesLoaded] =
     useState<boolean>(false);
 
@@ -222,8 +222,10 @@ const ChatGPT = () => {
   }, [messages]);
 
   useEffect(() => {
-    if (storedMessagesLoaded) {
-      setMessages(storedMessages[storedMessageIndex]);
+    if (isChatHistoryEnabled) {
+      if (storedMessagesLoaded) {
+        setMessages(storedMessages[storedMessageIndex]);
+      }
     }
   }, [storedMessageIndex]);
 
@@ -296,12 +298,12 @@ const ChatGPT = () => {
                       {"<"}
                     </button>
                     <button
-                      className={`px-2 ml-1 rounded
+                      className={`px-2 ml-1 rounded cursor-default
                           ${
                             isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
                           }`}
                       onClick={() => {
-                        setChatHistory(!isChatHistoryEnabled);
+                        // setChatHistory(!isChatHistoryEnabled);
                       }}
                     >
                       {`Chat History: ${storedMessageIndex}`}
