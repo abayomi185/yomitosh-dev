@@ -20,11 +20,9 @@ const ChatGPT = () => {
   const [accessKey, setAccessKey] = useState("");
 
   const [isChatHistoryEnabled, setChatHistory] = useState(true);
-  // const [storedMessages, setStoredMessages] = useState<{
-  //   [key: string]: IMessage[];
-  // }>({});
+
   const [storedMessages, setStoredMessages] = useState<IMessage[][]>([[]]);
-  const [storedMessageIndex, setStoredMessageIndex] = useState<number>(0);
+  const [storedMessageIndex, setStoredMessageIndex] = useState<number>(-1);
   const [storedMessagesLoaded, setStoredMessagesLoaded] =
     useState<boolean>(false);
 
@@ -129,7 +127,7 @@ const ChatGPT = () => {
     setLoadingResponse(true);
   };
 
-  const scrollToBottom = (immediately: boolean = false) => {
+  const scrollToBottom = () => {
     if (messageBoxRef.current) {
       messagesEndRef.current?.scrollIntoView({
         behavior: "smooth",
@@ -172,8 +170,8 @@ const ChatGPT = () => {
   // };
 
   const deleteAllStoredChat = () => {
-    resetMessages();
     setStoredMessageIndex(0);
+    resetMessages();
     setStoredMessages([]);
     localStorage.clear();
   };
@@ -224,12 +222,14 @@ const ChatGPT = () => {
   }, [messages]);
 
   useEffect(() => {
-    setMessages(storedMessages[storedMessageIndex]);
+    if (storedMessagesLoaded) {
+      setMessages(storedMessages[storedMessageIndex]);
+    }
   }, [storedMessageIndex]);
 
   useEffect(() => {
     localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
-  }, [storedMessages.map((message) => message.length)]);
+  }, [storedMessages.map((messages) => messages.length)]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
