@@ -155,7 +155,7 @@ const ChatGPT = () => {
       localStorage.getItem("storedMessages")
     ) || [[]];
     setStoredMessages(messagesFromStorage);
-    setStoredMessageIndex(messagesFromStorage?.length - 1);
+    setStoredMessageIndex(messagesFromStorage.length - 1);
     setStoredMessagesLoaded(true);
   };
 
@@ -182,9 +182,8 @@ const ChatGPT = () => {
     if (isChatHistoryEnabled) {
       if (storedMessagesLoaded) {
         const messagesToStore = storedMessages;
-        if (messages?.length !== 0) {
-          messagesToStore[storedMessageIndex] = messages;
-        }
+        messagesToStore[storedMessageIndex] =
+          messages ?? messagesToStore[storedMessageIndex];
         setStoredMessages(messagesToStore);
       }
     }
@@ -216,7 +215,7 @@ const ChatGPT = () => {
   }, [prompt]);
 
   useEffect(() => {
-    promptCounter > 0 && getCompletion(messages.at(-1)?.text);
+    promptCounter > 0 && getCompletion(messages.at(-1).text);
   }, [promptCounter]);
 
   useEffect(() => {
@@ -230,7 +229,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
-  }, [storedMessages.map((message) => message?.length)]);
+  }, [storedMessages.map((message) => message.length)]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
@@ -313,7 +312,7 @@ const ChatGPT = () => {
                         retrieveStoredMessage(Action.FORWARD);
                       }}
                       disabled={
-                        storedMessageIndex >= storedMessages?.length - 1 ||
+                        storedMessageIndex >= storedMessages.length - 1 ||
                         loadingResponse
                       }
                     >
@@ -324,7 +323,7 @@ const ChatGPT = () => {
                       onClick={() => {
                         createNewChat();
                       }}
-                      disabled={messages?.length <= 0 || loadingResponse}
+                      disabled={messages.length <= 0 || loadingResponse}
                     >
                       {"+"}
                     </button>
