@@ -5,6 +5,7 @@ export default function Document() {
   return (
     <Html>
       <Head>
+        <title>Yomi | Hub</title>
         <meta
           name="description"
           content="Link Hub for sites and projects by Abayomi Ikuru"
@@ -14,12 +15,13 @@ export default function Document() {
           content="Yomitosh, Yomi, PiServer, PiDeck, Photo, YouTube, Hub, CV"
         />
         <link rel="icon" href="/favicon.ico" />
-        <link
-          href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-          rel="stylesheet"
-          integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN"
-          crossOrigin="anonymous"
-        ></link>
+        {/* Open Graph */}
+        <meta property="og:title" content="Yomi's Hub" />
+        <meta
+          property="og:description"
+          content="Link Hub for sites and projects by Abayomi O-Ikuru"
+        />
+        <meta property="og:image" content="/favicon.ico" />
       </Head>
       <body>
         <Main />
