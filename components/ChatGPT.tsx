@@ -129,9 +129,12 @@ const ChatGPT = () => {
 
   const scrollToBottom = () => {
     if (messageBoxRef.current) {
-      messagesEndRef.current?.scrollIntoView({
-        behavior: "smooth",
-      });
+      const { scrollTop, scrollHeight, clientHeight } = messageBoxRef.current;
+      if (scrollTop + clientHeight - scrollHeight > -75) {
+        messagesEndRef.current?.scrollIntoView({
+          behavior: "smooth",
+        });
+      }
     }
   };
 

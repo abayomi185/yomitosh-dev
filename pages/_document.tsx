@@ -16,6 +16,7 @@ export default function Document() {
         />
         <link rel="icon" href="/favicon.ico" />
         {/* Open Graph */}
+        <meta property="og:url" content="https://yomitosh.dev" />
         <meta property="og:title" content="Yomi's Hub" />
         <meta
           property="og:description"
