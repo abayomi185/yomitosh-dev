@@ -5,7 +5,6 @@ export default function Document() {
   return (
     <Html>
       <Head>
-        <title>Yomi | Hub</title>
         <meta
           name="description"
           content="Link Hub for sites and projects by Abayomi Ikuru"

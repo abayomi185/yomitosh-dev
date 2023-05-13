@@ -165,12 +165,18 @@ const ChatGPT = () => {
     setStoredMessageIndex(storedMessageIndex + 1);
   };
 
-  // const deleteStoredChat = () => {
-  //   const messagesToStore = storedMessages;
-  //   messagesToStore.splice(storedMessageIndex, 1);
-  //   setStoredMessages(messagesToStore);
-  //   createNewChat();
-  // };
+  const deleteStoredChat = () => {
+    const messagesToStore = storedMessages;
+    const indexToRemove = storedMessageIndex;
+    messagesToStore.splice(indexToRemove, 1);
+    // Change storedMessageIndex before removing
+    setStoredMessages(messagesToStore);
+    if (indexToRemove + 1 >= messagesToStore.length - 1) {
+      createNewChat();
+    } else {
+      setStoredMessageIndex(indexToRemove + 1);
+    }
+  };
 
   const deleteAllStoredChat = () => {
     setStoredMessageIndex(0);
@@ -285,8 +291,8 @@ const ChatGPT = () => {
                     <button
                       className="px-3 w-12 sm:w-8 rounded bg-red-300 hover:bg-gray-300"
                       onClick={() => {
-                        deleteAllStoredChat();
-                        // deleteStoredChat();
+                        // deleteAllStoredChat();
+                        deleteStoredChat();
                       }}
                     >
                       {"x"}
@@ -348,7 +354,7 @@ const ChatGPT = () => {
                   <label className="ml-2 flex items-center">
                     <input
                       type="password"
-                      placeholder="access key"
+                      placeholder="ext. access"
                       value={accessKey}
                       onChange={(event) => {
                         setAccessKey(event.target.value);
