@@ -363,9 +363,11 @@ const ChatGPT = () => {
                     />
                   </label>
                 </div>
-                <p className="px-6 border-b border-solid border-slate-200 text-gray-500">
-                  Thread: {messages?.[0]?.text}
-                </p>
+                <div className="px-6 border-b border-solid border-slate-200 ">
+                  <p className="text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
+                    Thread: {messages?.[0]?.text}
+                  </p>
+                </div>
                 {/*body*/}
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
                   <div
