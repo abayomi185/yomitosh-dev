@@ -6,6 +6,7 @@
     "paths": {
       "@json/*": ["json/*"],
       "@components/*": ["components/*"],
+      "@app/*": ["app/*"],
       "@*": ["./*"]
     },
     "allowJs": true,
