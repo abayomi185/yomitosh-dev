@@ -171,10 +171,10 @@ const ChatGPT = () => {
     messagesToStore.splice(indexToRemove, 1);
     // Change storedMessageIndex before removing
     setStoredMessages(messagesToStore);
-    if (indexToRemove + 1 >= messagesToStore.length - 1) {
+    if (indexToRemove - 1 < 0) {
       createNewChat();
     } else {
-      setStoredMessageIndex(indexToRemove + 1);
+      setStoredMessageIndex(indexToRemove - 1);
     }
   };
 
@@ -363,6 +363,9 @@ const ChatGPT = () => {
                     />
                   </label>
                 </div>
+                <p className="px-6 border-b border-solid border-slate-200 text-gray-500">
+                  Thread: {messages?.[0]?.text}
+                </p>
                 {/*body*/}
                 <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
                   <div
