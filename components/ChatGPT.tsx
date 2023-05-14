@@ -365,7 +365,7 @@ const ChatGPT = () => {
                 </div>
                 <div className="px-6 border-b border-solid border-slate-200 ">
                   <p className="text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
-                    Thread: {messages?.[0]?.text}
+                    {messages?.[0]?.text}
                   </p>
                 </div>
                 {/*body*/}
