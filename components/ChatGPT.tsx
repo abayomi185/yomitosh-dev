@@ -240,7 +240,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
-  }, [storedMessages.map((messages) => messages.length)]);
+  }, [messages.length]);
 
   useEffect(() => {
     showModal && (document.body.style.overflow = "hidden");
