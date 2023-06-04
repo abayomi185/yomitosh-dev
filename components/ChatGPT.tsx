@@ -65,6 +65,10 @@ const ChatGPT = () => {
     abortController.current && abortController.current.abort();
   };
 
+  const abortRequest = () => {
+    abortController.current && abortController.current.abort();
+  };
+
   const getCompletion = async (prompt: string) => {
     abortController.current = new AbortController();
 
@@ -383,12 +387,24 @@ const ChatGPT = () => {
                     ))}
                     <div ref={messagesEndRef} />
                   </div>
-                  <p className="px-6">
-                    {loadingResponse ? "Loading..." : null}
+                  <div className="px-6">
+                    {loadingResponse ? (
+                      <div className="flex justify-between">
+                        <p className="inline">Loading...</p>
+                        <button
+                          className="mr-5 hover:underline"
+                          onClick={() => {
+                            abortRequest();
+                          }}
+                        >
+                          cancel
+                        </button>
+                      </div>
+                    ) : null}
                     {errorResponse
                       ? "Oops, error occured, please try again."
                       : null}
-                  </p>
+                  </div>
                   <form
                     onSubmit={handleSubmit}
                     className="min-h-8 max-h-24 bottom-0 left-0 flex w-full px-6"
