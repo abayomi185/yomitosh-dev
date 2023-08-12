@@ -44,6 +44,11 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
         {
           role: "system",
           content:
+            "Don't make reponses overly verbose. Keep them short and conscise where possible.",
+        },
+        {
+          role: "system",
+          content:
             "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
         },
         {
