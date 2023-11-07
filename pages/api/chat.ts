@@ -4,7 +4,7 @@ export const config = {
 
 import { createParser } from "eventsource-parser";
 import type { NextFetchEvent, NextRequest } from "next/server";
-import { GPTModel, OpenAIMessage } from "@utils/chatgpt";
+import { GPTModel, OpenAIMessage } from "@type/chat";
 
 const OPENAI_COMPLETIONS_ENDPOINT =
   "https://api.openai.com/v1/chat/completions";

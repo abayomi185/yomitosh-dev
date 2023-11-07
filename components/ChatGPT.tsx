@@ -11,7 +11,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
 
-import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@utils/chatgpt";
+import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@type/chat";
 import { Action } from "@utils/util";
 
 const ChatGPT = () => {
@@ -86,7 +86,7 @@ const ChatGPT = () => {
             }
           }),
         ],
-        model: checkedGPT4 ? GPTModel.GPT4 : GPTModel.GPT3,
+        model: checkedGPT4 ? GPTModel.GPT4_PREVIEW : GPTModel.GPT3,
         accessKey: accessKey,
       }),
       headers: {
@@ -157,7 +157,7 @@ const ChatGPT = () => {
 
   const getAllStoredMessages = () => {
     const messagesFromStorage = JSON.parse(
-      localStorage.getItem("storedMessages")
+      localStorage.getItem("storedMessages"),
     ) || [[]];
     setStoredMessages(messagesFromStorage);
     setStoredMessageIndex(messagesFromStorage.length - 1);
@@ -203,7 +203,7 @@ const ChatGPT = () => {
   const handleSubmit = (
     event:
       | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     event.preventDefault();
     if (prompt !== "") sendPrompt(prompt);

@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #__next {
+  height: 100%;
+}
 
 body {
   font-family: 'Karla';
