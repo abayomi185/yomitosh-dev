@@ -11,11 +11,18 @@ export interface IMessage {
   isChatGPT: boolean;
   text: string;
   data?: any;
+  image?: string;
+}
+
+export interface OpenAIMessageContent {
+  type: "text" | "image_url";
+  text?: string;
+  image_url?: string;
 }
 
 export interface OpenAIMessage {
   role: "system" | "user";
-  content: string;
+  content: OpenAIMessageContent[];
 }
 
 export interface ChatThread {

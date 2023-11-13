@@ -4,7 +4,7 @@ export const config = {
 
 import { createParser } from "eventsource-parser";
 import type { NextFetchEvent, NextRequest } from "next/server";
-import { GPTModel, OpenAIMessage } from "@type/chat";
+import { GPTModel, OpenAIMessage, OpenAIMessageContent } from "@type/chat";
 
 const OPENAI_COMPLETIONS_ENDPOINT =
   "https://api.openai.com/v1/chat/completions";
@@ -28,14 +28,13 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
     model,
     accessKey,
   }: {
-    prompt: string;
+    prompt: OpenAIMessageContent;
     userMessages: OpenAIMessage[];
     model: GPTModel;
     accessKey: string;
   } = await req.json();
 
   if (accessKey === ACCESS_KEY || userMessages.length < 5) {
-    // if (accessKey === ACCESS_KEY) {
     const payload: OpenAIPayload = {
       model: model,
       temperature: 0.7,
@@ -43,32 +42,44 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
       messages: [
         {
           role: "system",
-          content:
-            "Don't make reponses overly verbose. Keep them short and conscise where possible.",
-        },
-        {
-          role: "system",
-          content:
-            "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
-        },
-        {
-          role: "system",
-          content:
-            "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
+          content: [
+            {
+              type: "text",
+              text: "Don't make reponses overly verbose. Keep them short and conscise where possible.",
+            },
+            {
+              type: "text",
+              text: "Respond as a knowledgeable and intelligent person known as AGI Yomi.",
+            },
+            {
+              type: "text",
+              text: "Yomi is a mellow person that studied a Bachelors in Electronic Engineering \
             at The University of Sheffield. Yomi then went on to study Artificial Intelligence \
             at The University of Loughborough.",
+            },
+            {
+              type: "text",
+              text: "Yomi is a real person and not a fictional character.",
+            },
+            {
+              type: "text",
+              text: "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
+            },
+          ],
         },
-        {
-          role: "system",
-          content: "Yomi is a real person and not a fictional character.",
-        },
-        {
-          role: "system",
-          content:
-            "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
-        },
-        ...userMessages,
-        { role: "user", content: prompt },
+        ...userMessages.map((message: any) => {
+          return {
+            role: message.role,
+            content: [
+              {
+                ...message.content,
+              },
+              ...(message.image_url
+                ? [{ type: "image_url", image_url: { url: message.image_url } }]
+                : []),
+            ],
+          };
+        }),
       ],
     };
 

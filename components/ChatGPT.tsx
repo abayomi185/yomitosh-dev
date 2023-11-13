@@ -1,15 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import {
-  FaPaperPlane,
-  FaTimesCircle,
-  FaRegClipboard,
-  FaCheck,
-} from "react-icons/fa";
+import { FaTimesCircle, FaRegClipboard, FaCheck } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
+import { DndProvider, useDrop } from "react-dnd";
+import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
 
 import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@type/chat";
 import { Action } from "@utils/util";
@@ -31,12 +28,13 @@ const ChatGPT = () => {
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
 
+  const [gptModel, setGptModel] = useState(GPTModel.GPT3);
+
   const [textAreaRows, setTextAreaRows] = useState(1);
 
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [errorResponse, setErrorResponse] = useState(false);
-
-  const [checkedGPT4, setCheckedGPT4] = useState(false);
+  const [gptModelError, setGptModelError] = useState(false);
 
   const [messages, setMessages] = useState<IMessage[]>([]);
 
@@ -45,7 +43,26 @@ const ChatGPT = () => {
 
   const abortController = useRef(null);
 
-  function updateStreamedMessage(message: string) {
+  const [image, setImage] = useState(null);
+
+  const [{ isOver }, imageDrop] = useDrop(() => ({
+    accept: [NativeTypes.FILE],
+    drop: (item: any, _monitor) => {
+      // handle the drop
+      if (item.files && item.files.length > 0) {
+        const reader = new FileReader();
+        reader.onload = function (evt) {
+          setImage(evt.target.result);
+        };
+        reader.readAsDataURL(item.files[0]);
+      }
+    },
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }));
+
+  const updateStreamedMessage = (message: string) => {
     setMessages((prevItems) => {
       const lastMessageIndex = prevItems.length - 1;
       const newMessages = [...prevItems];
@@ -55,7 +72,7 @@ const ChatGPT = () => {
       };
       return newMessages;
     });
-  }
+  };
 
   const resetMessages = () => {
     setMessages([]);
@@ -76,17 +93,32 @@ const ChatGPT = () => {
       signal: abortController.current.signal,
       method: "POST",
       body: JSON.stringify({
-        prompt: prompt,
+        prompt: {
+          type: "text",
+          text: prompt,
+          ...(image ? { image_url: image } : {}),
+        },
         userMessages: [
           ...messages.map((message) => {
             if (message.isChatGPT) {
-              return { role: ASSISTANT_ROLE, content: message.text };
+              return {
+                role: ASSISTANT_ROLE,
+                content: {
+                  type: "text",
+                  text: message.text,
+                  ...(message.image ? { image_url: message.image } : {}),
+                },
+              };
             } else {
-              return { role: USER_ROLE, content: message.text };
+              return {
+                role: USER_ROLE,
+                content: { type: "text", text: message.text },
+                ...(message.image ? { image_url: message.image } : {}),
+              };
             }
           }),
         ],
-        model: checkedGPT4 ? GPTModel.GPT4_PREVIEW : GPTModel.GPT3,
+        model: gptModel,
         accessKey: accessKey,
       }),
       headers: {
@@ -117,14 +149,16 @@ const ChatGPT = () => {
 
       setLoadingResponse(false);
     } catch (error) {
-      console.log(error);
       setLoadingResponse(false);
       setErrorResponse(true);
     }
   };
 
   const sendPrompt = (prompt: string) => {
-    setMessages([...messages, { isChatGPT: false, text: prompt }]);
+    setMessages([
+      ...messages,
+      { isChatGPT: false, text: prompt, ...(image ? { image: image } : {}) },
+    ]);
     setPromptCounter(promptCounter + 1);
     setPrompt("");
 
@@ -206,7 +240,10 @@ const ChatGPT = () => {
       | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     event.preventDefault();
-    if (prompt !== "") sendPrompt(prompt);
+    if (prompt !== "" || gptModelError) {
+      sendPrompt(prompt);
+      setImage(null);
+    }
   };
 
   useEffect(() => {
@@ -251,210 +288,250 @@ const ChatGPT = () => {
     !showModal && (document.body.style.overflow = "unset");
   }, [showModal]);
 
+  useEffect(() => {
+    if (image) {
+      setGptModelError(gptModel !== GPTModel.GPT4_VISION);
+    } else if (image === null) {
+      setGptModelError(false);
+    }
+  }, [image]);
+
   return (
     <>
-      <section className="flex px-3 sm:px-0 pb-12">
-        <span className="w-full md:w-4/5 lg:w-3/6 mx-auto">
-          <button
-            className="relative transition mx-auto w-3/4 md:w-2/4 duration-200 font-bold bg-gray-700 border-gray-700 border-2 hover:bg-custom-7 py-4 block text-center text-gray-200 hover:text-gray-800 rounded-lg px-12 md:px-12"
-            onClick={() => {
-              setShowModal(!showModal);
-            }}
-          >
-            <span className="absolute left-0 top-0 bottom-0 pl-3 flex items-center">
-              {openaiSVG}
-            </span>
-            <span>
-              Chat with my
-              <br />
-              consciousness
-            </span>
-          </button>
-        </span>
-      </section>
-      {showModal && (
-        <>
-          <div className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none">
-            <div className="relative my-6 mx-auto w-full max-w-4xl h-[95%] md:h-3/4 flex">
-              {/*content*/}
-              <div className="border-0 rounded-2xl shadow-lg relative flex flex-col w-full h-full bg-white outline-none focus:outline-none">
-                {/*header*/}
-                <div className="flex items-start justify-between px-4 py-2 border-b border-solid border-slate-200 rounded-t">
-                  <h3 className="text-3xl">A.G.I. Yomi</h3>
-                  <button
-                    className="p-1 ml-auto bg-transparent border-0 text-black opacity-75 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                    onClick={() => setShowModal(false)}
-                  >
-                    <span className="bg-transparent text-red-800 h-6 w-6 mt-1 text-2xl block outline-none focus:outline-none">
-                      <FaTimesCircle size="1.5rem" />
-                    </span>
-                  </button>
-                </div>
-                <div className="px-5 py-2 border-b border-solid border-slate-200 flex flex-wrap justify-between">
-                  <div className="flex mr-auto ml-auto sm:ml-0 relative my-1 h-12 sm:h-8">
+      <DndProvider backend={HTML5Backend}>
+        <section className="flex px-3 sm:px-0 pb-12">
+          <span className="w-full md:w-4/5 lg:w-3/6 mx-auto">
+            <button
+              className="relative transition mx-auto w-3/4 md:w-2/4 duration-200 font-bold bg-gray-700 border-gray-700 border-2 hover:bg-custom-7 py-4 block text-center text-gray-200 hover:text-gray-800 rounded-lg px-12 md:px-12"
+              onClick={() => {
+                setShowModal(!showModal);
+              }}
+            >
+              <span className="absolute left-0 top-0 bottom-0 pl-3 flex items-center">
+                {openaiSVG}
+              </span>
+              <span>
+                Chat with my
+                <br />
+                consciousness
+              </span>
+            </button>
+          </span>
+        </section>
+        {showModal && (
+          <>
+            <div
+              ref={imageDrop}
+              className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+            >
+              <div className="relative my-6 mx-auto w-full max-w-4xl h-[95%] md:h-3/4 flex">
+                {/*content*/}
+                <div className="border-0 rounded-2xl shadow-lg relative flex flex-col w-full h-full bg-white outline-none focus:outline-none">
+                  {/*header*/}
+                  <div className="flex items-start justify-between px-4 py-2 border-b border-solid border-slate-200 rounded-t">
+                    <h3 className="text-3xl">A.G.I. Yomi</h3>
                     <button
-                      className="px-3 w-12 sm:w-8 rounded bg-red-300 hover:bg-gray-300"
-                      onClick={() => {
-                        // deleteAllStoredChat();
-                        deleteStoredChat();
-                      }}
+                      className="p-1 ml-auto bg-transparent border-0 text-black opacity-75 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
+                      onClick={() => setShowModal(false)}
                     >
-                      {"x"}
+                      <span className="bg-transparent text-red-800 h-6 w-6 mt-1 text-2xl block outline-none focus:outline-none">
+                        <FaTimesCircle size="1.5rem" />
+                      </span>
                     </button>
-                    <button
-                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
-                      onClick={() => {
-                        retrieveStoredMessage(Action.BACK);
-                      }}
-                      disabled={storedMessageIndex === 0 || loadingResponse}
-                    >
-                      {"<"}
-                    </button>
-                    <button
-                      className={`px-2 ml-1 rounded cursor-default
+                  </div>
+                  <div className="px-5 py-2 border-b border-solid border-slate-200 flex flex-wrap justify-between">
+                    <div className="flex mr-auto ml-auto sm:ml-0 relative my-1 h-12 sm:h-8">
+                      <button
+                        className="px-3 w-12 sm:w-8 rounded bg-red-300 hover:bg-gray-300"
+                        onClick={() => {
+                          // deleteAllStoredChat();
+                          deleteStoredChat();
+                        }}
+                      >
+                        {"x"}
+                      </button>
+                      <button
+                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                        onClick={() => {
+                          retrieveStoredMessage(Action.BACK);
+                        }}
+                        disabled={storedMessageIndex === 0 || loadingResponse}
+                      >
+                        {"<"}
+                      </button>
+                      <button
+                        className={`px-2 ml-1 rounded cursor-default
                           ${
                             isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
                           }`}
-                      onClick={() => {
-                        // setChatHistory(!isChatHistoryEnabled);
-                      }}
-                    >
-                      {`Chat History: ${storedMessageIndex}`}
-                    </button>
-                    <button
-                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
-                      onClick={() => {
-                        retrieveStoredMessage(Action.FORWARD);
-                      }}
-                      disabled={
-                        storedMessageIndex >= storedMessages.length - 1 ||
-                        loadingResponse
-                      }
-                    >
-                      {">"}
-                    </button>
-                    <button
-                      className="px-3 w-12 sm:w-8 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
-                      onClick={() => {
-                        createNewChat();
-                      }}
-                      disabled={messages.length <= 0 || loadingResponse}
-                    >
-                      {"+"}
-                    </button>
-                  </div>
-                  <label className="cursor-pointer flex items-center">
-                    Use GPT-4:
-                    <input
-                      type="checkbox"
-                      checked={checkedGPT4}
-                      onChange={() => {
-                        // set checkedGPT4 to opposite of current value
-                        setCheckedGPT4(!checkedGPT4);
-                      }}
-                      className="w-4 h-4 ml-2 accent-green-600 mr-2 align-middle cursor-pointer"
-                    />
-                  </label>
-                  <label className="ml-2 flex items-center">
-                    <input
-                      type="password"
-                      placeholder="ext. access"
-                      value={accessKey}
-                      onChange={(event) => {
-                        setAccessKey(event.target.value);
-                      }}
-                      className="border-gray-300 border-2 rounded px-1 py-0.5 w-28 ml-2"
-                    />
-                  </label>
-                </div>
-                <div className="px-6 border-b border-solid border-slate-200 ">
-                  <p className="text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
-                    {messages?.[0]?.text}
-                  </p>
-                </div>
-                {/*body*/}
-                <div className="px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col">
-                  <div
-                    ref={messageBoxRef}
-                    className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
-                  >
-                    {messages.map((message, index) => (
-                      <ChatDialog
-                        key={index}
-                        content={message.text}
-                        chatgpt={message.isChatGPT}
-                      />
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                  <div className="px-6">
-                    {loadingResponse ? (
-                      <div className="flex justify-between">
-                        <p className="inline">Loading...</p>
-                        <button
-                          className="mr-5 hover:underline"
-                          onClick={() => {
-                            abortRequest();
-                          }}
-                        >
-                          cancel
-                        </button>
-                      </div>
-                    ) : null}
-                    {errorResponse
-                      ? "Oops, error occured, please try again."
-                      : null}
-                  </div>
-                  <form
-                    onSubmit={handleSubmit}
-                    className="min-h-8 max-h-24 bottom-0 left-0 flex w-full px-6"
-                  >
-                    <div className="inline h-full relative flex-1 w-full mr-2">
-                      <textarea
-                        className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 pt-3 pb-1 w-full"
-                        onChange={(e) => {
-                          setPrompt(e.target.value);
-                          setErrorResponse(false);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSubmit(e);
-                          }
-                        }}
-                        value={prompt || ""}
-                        rows={textAreaRows}
-                        placeholder={"Ask something"}
-                      />
-                    </div>
-                    <div className="inline h-full">
-                      <input
-                        type="button"
-                        className={`relative h-full transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 ${
-                          loadingResponse
-                            ? "text-gray-700"
-                            : "hover:bg-custom-7 hover:text-gray-800 text-gray-200"
-                        } text-center rounded-lg px-5`}
-                        value={"Send"}
                         onClick={() => {
-                          if (prompt !== "") sendPrompt(prompt);
+                          // setChatHistory(!isChatHistoryEnabled);
                         }}
-                        disabled={loadingResponse}
-                      />
+                      >
+                        {`Chat History: ${storedMessageIndex}`}
+                      </button>
+                      <button
+                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
+                        onClick={() => {
+                          retrieveStoredMessage(Action.FORWARD);
+                        }}
+                        disabled={
+                          storedMessageIndex >= storedMessages.length - 1 ||
+                          loadingResponse
+                        }
+                      >
+                        {">"}
+                      </button>
+                      <button
+                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
+                        onClick={() => {
+                          createNewChat();
+                        }}
+                        disabled={messages.length <= 0 || loadingResponse}
+                      >
+                        {"+"}
+                      </button>
                     </div>
-                  </form>
+                    <label className="cursor-pointer flex items-center">
+                      Use:
+                      <select
+                        value={gptModel}
+                        onChange={(e) =>
+                          setGptModel(e.target.value as GPTModel)
+                        }
+                        className="ml-2 align-middle cursor-pointer"
+                      >
+                        {Object.entries(GPTModel).map(([key, value]) => (
+                          <option key={key} value={value}>
+                            {key}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="ml-2 flex items-center">
+                      <input
+                        type="password"
+                        placeholder="ext. access"
+                        value={accessKey}
+                        onChange={(event) => {
+                          setAccessKey(event.target.value);
+                        }}
+                        className="border-gray-300 border-2 rounded px-1 py-0.5 w-28 ml-2"
+                      />
+                    </label>
+                  </div>
+                  <div className="px-6 border-b border-solid border-slate-200 ">
+                    <p className="text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
+                      {messages?.[0]?.text}
+                    </p>
+                  </div>
+                  {/*body*/}
+                  <div
+                    className={`px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col ${
+                      isOver ? "bg-gray-200 rounded-b-lg" : ""
+                    }`}
+                  >
+                    <div
+                      ref={messageBoxRef}
+                      className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
+                    >
+                      {messages.map((message, index) => (
+                        <ChatDialog
+                          key={index}
+                          content={message.text}
+                          chatgpt={message.isChatGPT}
+                          image={message.image}
+                        />
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                    <div className="px-6 py-2">
+                      {image ? (
+                        <div className="relative inline-block">
+                          <img src={image} className="w-24 h-24 rounded-lg" />
+                          <button
+                            className="absolute top-0 right-0 mr-2 mt-2 bg-red-400 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-500"
+                            onClick={() => {
+                              setImage(null);
+                            }}
+                          >
+                            x
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="px-6">
+                      {loadingResponse ? (
+                        <div className="flex justify-between">
+                          <p className="inline">Loading...</p>
+                          <button
+                            className="mr-5 hover:underline"
+                            onClick={() => {
+                              abortRequest();
+                            }}
+                          >
+                            cancel
+                          </button>
+                        </div>
+                      ) : null}
+                      {errorResponse
+                        ? "Oops, error occured, please try again."
+                        : null}
+                      {gptModelError
+                        ? "Images are only supported when using GPT-4 Vision."
+                        : null}
+                    </div>
+                    <form
+                      onSubmit={handleSubmit}
+                      className="min-h-8 max-h-24 bottom-0 left-0 flex w-full px-6"
+                    >
+                      <div className="inline h-full relative flex-1 w-full mr-2">
+                        <textarea
+                          className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 pt-3 pb-1 w-full"
+                          onChange={(e) => {
+                            setPrompt(e.target.value);
+                            setErrorResponse(false);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSubmit(e);
+                            }
+                          }}
+                          value={prompt || ""}
+                          rows={textAreaRows}
+                          placeholder={"Ask something"}
+                        />
+                      </div>
+                      <div className="inline h-full">
+                        <input
+                          type="button"
+                          className={`relative h-full transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 ${
+                            loadingResponse
+                              ? "text-gray-700"
+                              : "hover:bg-custom-7 hover:text-gray-800 text-gray-200"
+                          } text-center rounded-lg px-5`}
+                          value={"Send"}
+                          onClick={() => {
+                            if (prompt !== "") sendPrompt(prompt);
+                          }}
+                          disabled={loadingResponse}
+                        />
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div
-            className="opacity-25 fixed inset-0 z-40 bg-black"
-            onClick={() => {
-              setShowModal(false);
-            }}
-          ></div>
-        </>
-      )}
+            <div
+              className="opacity-25 fixed inset-0 z-40 bg-black"
+              onClick={() => {
+                setShowModal(false);
+              }}
+            ></div>
+          </>
+        )}
+      </DndProvider>
     </>
   );
 };
@@ -501,7 +578,7 @@ const CodeCopyBtn = ({ children }) => {
   );
 };
 
-const ChatDialog = ({ content, chatgpt }) => {
+const ChatDialog = ({ content, chatgpt, image }) => {
   return (
     <div
       className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${
@@ -546,6 +623,7 @@ const ChatDialog = ({ content, chatgpt }) => {
           },
         }}
       />
+      {image && <img src={image} className="w-24 h-24 rounded-lg" />}
     </div>
   );
 };
