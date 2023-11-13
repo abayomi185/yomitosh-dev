@@ -291,7 +291,8 @@ const ChatGPT = () => {
   useEffect(() => {
     if (image) {
       setGptModelError(gptModel !== GPTModel.GPT4_VISION);
-    } else if (image === null) {
+      // } else if (image === null || gptModel === GPTModel.GPT4_VISION) {
+    } else if (gptModelError !== false) {
       setGptModelError(false);
     }
   }, [image]);
@@ -623,7 +624,9 @@ const ChatDialog = ({ content, chatgpt, image }) => {
           },
         }}
       />
-      {image && <img src={image} className="w-24 h-24 rounded-lg" />}
+      {image && (
+        <img src={image} className="w-48 h-48 rounded-lg object-contain" />
+      )}
     </div>
   );
 };
