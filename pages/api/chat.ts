@@ -81,6 +81,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
           };
         }),
       ],
+      ...(model === GPTModel.GPT4_VISION ? { max_tokens: 300 } : {}),
     };
 
     const res = await fetch(OPENAI_COMPLETIONS_ENDPOINT, {
