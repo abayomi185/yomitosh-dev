@@ -28,7 +28,7 @@ const ChatGPT = () => {
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
 
-  const [gptModel, setGptModel] = useState(GPTModel.GPT3);
+  const [gptModel, setGptModel] = useState(GPTModel.GPT3_5);
 
   const [textAreaRows, setTextAreaRows] = useState(1);
 
@@ -404,7 +404,7 @@ const ChatGPT = () => {
                       >
                         {Object.entries(GPTModel).map(([key, value]) => (
                           <option key={key} value={value}>
-                            {key}
+                            {value}
                           </option>
                         ))}
                       </select>
