@@ -14,6 +14,7 @@ interface OpenAIPayload {
   temperature: number;
   stream: boolean;
   messages: OpenAIMessage[];
+  max_tokens: number;
 }
 
 export default async (req: NextRequest, context: NextFetchEvent) => {
@@ -81,7 +82,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
           };
         }),
       ],
-      ...(model === GPTModel.GPT4_VISION ? { max_tokens: 300 } : {}),
+      max_tokens: Infinity,
     };
 
     const res = await fetch(OPENAI_COMPLETIONS_ENDPOINT, {
