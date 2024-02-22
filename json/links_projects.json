@@ -1,5 +1,11 @@
 [
   {
+    "title": "Astrysk",
+    "url": "https://astrysk-docs.vercel.app",
+    "emoji": "📲",
+    "active": true
+  },
+  {
     "title": "A.I. Robot Arm using Reinforcement Learning (PG)",
     "url": "https://github.com/abayomi185/rl-msc-project",
     "emoji": "🦾",
