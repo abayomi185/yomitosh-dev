@@ -5,6 +5,7 @@ export const config = {
 import { createParser } from "eventsource-parser";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { GPTModel, OpenAIMessage, OpenAIMessageContent } from "@type/chat";
+import { cv_prompt } from "./prompt";
 
 const OPENAI_COMPLETIONS_ENDPOINT =
   "https://api.openai.com/v1/chat/completions";
@@ -65,6 +66,10 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
             {
               type: "text",
               text: "Yomi currently work as a Software Engineer at Aurora Energy Research in Oxford, England.",
+            },
+            {
+              type: "text",
+              text: `This is Yomi's CV: \n${cv_prompt}`,
             },
           ],
         },
