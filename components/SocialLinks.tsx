@@ -1,3 +1,5 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import socialLinks from "@json/social-links.json";
 import Link from "next/link";
 
@@ -12,7 +14,12 @@ const SocialLinks = () => {
             target="_blank"
             rel="noopener"
           >
-            <i className={`fa fa-2x fa-${link.icon}`}></i>
+            <span>
+              <FontAwesomeIcon
+                icon={[link.icon_group, link.icon] as IconProp}
+                size="2x"
+              />
+            </span>
           </Link>
         </li>
       ))}

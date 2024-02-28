@@ -1,21 +1,26 @@
 [
   {
+    "icon_group": "fab",
     "icon": "linkedin",
     "url": "https://www.linkedin.com/in/yomi-ikuru"
   },
   {
+    "icon_group": "fab",
     "icon": "github",
     "url": "https://github.com/abayomi185"
   },
   {
+    "icon_group": "fa-solid",
     "icon": "envelope",
     "url": "https://yomis.blog/contact"
   },
   {
+    "icon_group": "fab",
     "icon": "instagram",
     "url": "https://instagram.com/yomi185"
   },
   {
+    "icon_group": "fab",
     "icon": "twitter",
     "url": "https://twitter.com/yomi_185"
   }
