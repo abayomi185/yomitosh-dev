@@ -1,5 +1,6 @@
 // pages/_document.js
 import { Html, Head, Main, NextScript } from "next/document";
+import Script from "next/script";
 
 export default function Document() {
   return (
@@ -24,6 +25,12 @@ export default function Document() {
         <meta property="og:image" content="/favicon.ico" />
       </Head>
       <body>
+        <Script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "your-cloudflare-token"}'
+          strategy="afterInteractive"
+        />
         <Main />
         <NextScript />
       </body>
