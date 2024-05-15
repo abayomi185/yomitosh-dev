@@ -290,8 +290,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     if (image) {
-      setGptModelError(gptModel !== GPTModel.GPT4_VISION);
-      // } else if (image === null || gptModel === GPTModel.GPT4_VISION) {
+      setGptModelError(gptModel !== GPTModel.GPT4O);
     } else if (gptModelError !== false) {
       setGptModelError(false);
     }
