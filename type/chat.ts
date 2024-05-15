@@ -4,7 +4,6 @@ export const USER_ROLE = "user";
 export enum GPTModel {
   GPT3_5 = "gpt-3.5-turbo",
   GPT4O = "gpt-4o",
-  GPT4_PREVIEW = "gpt-4-1106-preview",
 }
 
 export interface IMessage {
