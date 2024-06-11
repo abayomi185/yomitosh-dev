@@ -91,7 +91,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
           };
         }),
       ],
-      max_tokens: image_present ? 500 : Infinity,
+      max_tokens: image_present ? 1024 : Infinity,
     };
 
     const res = await fetch(OPENAI_COMPLETIONS_ENDPOINT, {
