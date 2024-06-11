@@ -36,6 +36,10 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
     accessKey: string;
   } = await req.json();
 
+  const image_present = userMessages.some(
+    (message: any) => "image_url" in message
+  );
+
   if (accessKey === ACCESS_KEY || userMessages.length < 5) {
     const payload: OpenAIPayload = {
       model: model,
@@ -87,7 +91,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
           };
         }),
       ],
-      max_tokens: Infinity,
+      max_tokens: image_present ? 500 : Infinity,
     };
 
     const res = await fetch(OPENAI_COMPLETIONS_ENDPOINT, {
