@@ -191,7 +191,7 @@ const ChatGPT = () => {
 
   const getAllStoredMessages = () => {
     const messagesFromStorage = JSON.parse(
-      localStorage.getItem("storedMessages"),
+      localStorage.getItem("storedMessages")
     ) || [[]];
     setStoredMessages(messagesFromStorage);
     setStoredMessageIndex(messagesFromStorage.length - 1);
@@ -237,7 +237,7 @@ const ChatGPT = () => {
   const handleSubmit = (
     event:
       | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>,
+      | React.KeyboardEvent<HTMLTextAreaElement>
   ) => {
     event.preventDefault();
     if (prompt !== "" || gptModelError) {
@@ -290,7 +290,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     if (image) {
-      setGptModelError(gptModel !== GPTModel.GPT4O);
+      setGptModelError(gptModel !== GPTModel.GPT4o);
     } else if (gptModelError !== false) {
       setGptModelError(false);
     }
