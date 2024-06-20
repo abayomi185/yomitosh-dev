@@ -204,6 +204,8 @@ const ChatGPT = () => {
   };
 
   const deleteStoredChat = () => {
+    abortRequest();
+
     const messagesToStore = storedMessages;
     const indexToRemove = storedMessageIndex;
     messagesToStore.splice(indexToRemove, 1);
