@@ -28,7 +28,7 @@ const ChatGPT = () => {
   const [prompt, setPrompt] = useState("");
   const [promptCounter, setPromptCounter] = useState(0);
 
-  const [gptModel, setGptModel] = useState(GPTModel.GPT3_5);
+  const [gptModel, setGptModel] = useState(GPTModel.GPT4o_mini);
 
   const [textAreaRows, setTextAreaRows] = useState(1);
 

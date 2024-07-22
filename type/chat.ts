@@ -2,7 +2,7 @@ export const ASSISTANT_ROLE = "assistant";
 export const USER_ROLE = "user";
 
 export enum GPTModel {
-  GPT3_5 = "gpt-3.5-turbo",
+  GPT4o_mini = "gpt-4o-mini",
   GPT4o = "gpt-4o",
 }
 
