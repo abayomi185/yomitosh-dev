@@ -191,7 +191,7 @@ const ChatGPT = () => {
 
   const getAllStoredMessages = () => {
     const messagesFromStorage = JSON.parse(
-      localStorage.getItem("storedMessages")
+      localStorage.getItem("storedMessages"),
     ) || [[]];
     setStoredMessages(messagesFromStorage);
     setStoredMessageIndex(messagesFromStorage.length - 1);
@@ -239,7 +239,7 @@ const ChatGPT = () => {
   const handleSubmit = (
     event:
       | React.FormEvent<HTMLFormElement>
-      | React.KeyboardEvent<HTMLTextAreaElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     event.preventDefault();
     if (prompt !== "" || gptModelError) {
@@ -363,8 +363,7 @@ const ChatGPT = () => {
                       </button>
                       <button
                         className={`px-2 ml-1 rounded cursor-default
-                          ${
-                            isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
+                          ${isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
                           }`}
                         onClick={() => {
                           // setChatHistory(!isChatHistoryEnabled);
@@ -429,9 +428,8 @@ const ChatGPT = () => {
                   </div>
                   {/*body*/}
                   <div
-                    className={`px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col ${
-                      isOver ? "bg-gray-200 rounded-b-lg" : ""
-                    }`}
+                    className={`px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col ${isOver ? "bg-gray-200 rounded-b-lg" : ""
+                      }`}
                   >
                     <div
                       ref={messageBoxRef}
@@ -508,11 +506,10 @@ const ChatGPT = () => {
                       <div className="inline h-full">
                         <input
                           type="button"
-                          className={`relative h-full transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 ${
-                            loadingResponse
+                          className={`relative h-full transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 ${loadingResponse
                               ? "text-gray-700"
                               : "hover:bg-custom-7 hover:text-gray-800 text-gray-200"
-                          } text-center rounded-lg px-5`}
+                            } text-center rounded-lg px-5`}
                           value={"Send"}
                           onClick={() => {
                             if (prompt !== "") sendPrompt(prompt);
@@ -583,9 +580,8 @@ const CodeCopyBtn = ({ children }) => {
 const ChatDialog = ({ content, chatgpt, image }) => {
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${
-        !chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
-      }`}
+      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${!chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
+        }`}
     >
       {chatgpt && (
         <p className="border-b border-solid border-gray-500 mb-2">A.G.I Yomi</p>
