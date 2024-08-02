@@ -5,7 +5,7 @@ export const config = {
 import { createParser } from "eventsource-parser";
 import type { NextFetchEvent, NextRequest } from "next/server";
 import { GPTModel, OpenAIMessage, OpenAIMessageContent } from "@type/chat";
-import { cv_prompt } from "./prompt";
+import { cv_prompt } from "../prompt";
 
 const OPENAI_COMPLETIONS_ENDPOINT =
   "https://api.openai.com/v1/chat/completions";
@@ -37,7 +37,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
   } = await req.json();
 
   const image_present = userMessages.some(
-    (message: any) => "image_url" in message
+    (message: any) => "image_url" in message,
   );
 
   if (accessKey === ACCESS_KEY || userMessages.length < 5) {
