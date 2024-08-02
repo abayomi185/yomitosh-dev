@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/abayomi185/yomitosh-dev/api/adapters"
-	"github.com/abayomi185/yomitosh-dev/api/constants"
+	"github.com/abayomi185/yomitosh-dev/cmd/adapters"
+	"github.com/abayomi185/yomitosh-dev/cmd/constants"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
