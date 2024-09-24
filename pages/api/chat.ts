@@ -51,7 +51,7 @@ export default async (req: NextRequest, context: NextFetchEvent) => {
           content: [
             {
               type: "text",
-              text: "Don't make reponses overly verbose. Keep them short and conscise where possible.",
+              text: "Don't make responses overly verbose. Keep them short and concise where possible.",
             },
             {
               type: "text",

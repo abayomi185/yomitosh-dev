@@ -29,7 +29,7 @@ Yomi Ikuru
 
 # Professional Experience
 
-## Junior Software Engineer - Full Stack
+## Software Engineer - Full Stack
 
 Nov 2022 – Present
 
@@ -191,11 +191,15 @@ revenue from in-app purchases and ads
 
 # Technical Skills
 
-### Languages: Rust, Python, TypeScript/JavaScript, SQL, Go
+### Languages:
+Rust, Python, TypeScript/JavaScript, SQL, Go
 
-### Frameworks: React, Next.js
+### Frameworks:
+React, Next.js
 
-### Developer Tools: Git, Linux, Docker, Kubernetes, AWS, Ansible, Terraform, Jupyter, Neovim
+### Developer Tools:
+Git, Linux, Docker, Kubernetes, AWS, Ansible, Terraform, Jupyter, Neovim
 
-### Libraries: NumPy, Polars, Matplotlib, PyTorch
+### Libraries:
+NumPy, Polars, Matplotlib, PyTorch
 `;
