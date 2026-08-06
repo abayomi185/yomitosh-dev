@@ -249,19 +249,17 @@ const ChatGPT = () => {
   return (
     <Dialog open={showModal} onOpenChange={setShowModal}>
       <section className="flex px-3 pb-12 sm:px-0">
-        <span className="mx-auto flex w-full justify-center md:w-4/5 lg:w-3/6">
+        <span className="mx-auto flex w-full max-w-sm justify-center">
           <DialogTrigger asChild>
             <Button
               size="lg"
-              className="relative mx-auto h-auto w-3/4 rounded-xl px-12 py-4 text-base font-bold shadow-md transition-transform hover:-translate-y-0.5 md:w-2/4"
+              className="relative h-auto w-full rounded-xl px-12 py-4 text-base font-bold shadow-md transition-transform hover:-translate-y-0.5"
             >
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+              <span className="absolute inset-y-0 left-0 flex w-12 items-center justify-center text-3xl [&_svg]:!size-[1.875rem]">
                 {openaiSVG}
               </span>
-              <span>
-                Chat with my
-                <br />
-                consciousness
+              <span className="min-w-0 whitespace-normal break-words text-center leading-tight">
+                Chat with my consciousness
               </span>
             </Button>
           </DialogTrigger>
@@ -470,8 +468,7 @@ export default ChatGPT;
 
 const openaiSVG = (
   <svg
-    height="2rem"
-    width="2rem"
+    className="!size-[1.875rem] shrink-0"
     fill="#fff"
     viewBox="0 0 24 24"
     xmlns="http://www.w3.org/2000/svg"

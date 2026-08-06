@@ -28,7 +28,7 @@ const LinkList = () => {
                 className="relative h-auto w-full rounded-xl border py-4 text-center text-base font-bold shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-accent hover:text-accent-foreground"
               >
                 <Link href={link.url} target="_blank" rel="noopener noreferrer">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-3xl">
+                  <span className="absolute inset-y-0 left-0 flex w-12 items-center justify-center text-3xl [&_svg]:!size-[1.875rem]">
                     {isEmoji(link.emoji)
                       ? link.emoji
                       : createIconComponent(link.emoji)}
