@@ -249,7 +249,7 @@ const ChatGPT = () => {
   return (
     <Dialog open={showModal} onOpenChange={setShowModal}>
       <section className="flex px-3 pb-12 sm:px-0">
-        <span className="mx-auto w-full md:w-4/5 lg:w-3/6">
+        <span className="mx-auto flex w-full justify-center md:w-4/5 lg:w-3/6">
           <DialogTrigger asChild>
             <Button
               size="lg"
