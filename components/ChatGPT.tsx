@@ -1,10 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
-import {
-  DefaultChatTransport,
-  type FileUIPart,
-  type UIMessage,
-} from "ai";
+import { DefaultChatTransport, type FileUIPart, type UIMessage } from "ai";
 import { useRouter } from "next/router";
 import { FaRegClipboard, FaCheck } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
@@ -47,7 +43,6 @@ import { GPTModel } from "@type/chat";
 
 const chatTransport = new DefaultChatTransport({ api: "/api/chat" });
 const CHAT_STORAGE_KEY = "chatThreads:v2";
-
 
 const ChatGPT = () => {
   const router = useRouter();
@@ -95,7 +90,6 @@ const ChatGPT = () => {
       isOver: !!monitor.isOver(),
     }),
   }));
-
 
   const sendPrompt = (text: string) => {
     const files: FileUIPart[] = image
@@ -188,9 +182,7 @@ const ChatGPT = () => {
 
   useEffect(() => {
     try {
-      const parsed = JSON.parse(
-        localStorage.getItem(CHAT_STORAGE_KEY) ?? "[]",
-      );
+      const parsed = JSON.parse(localStorage.getItem(CHAT_STORAGE_KEY) ?? "[]");
       const stored: UIMessage[][] =
         Array.isArray(parsed) && parsed.length > 0 ? parsed : [[]];
       const latestIndex = stored.length - 1;
@@ -218,7 +210,6 @@ const ChatGPT = () => {
     setTextAreaRows(rows);
   }, [prompt]);
 
-
   useEffect(() => {
     scrollToBottom();
 
@@ -240,8 +231,6 @@ const ChatGPT = () => {
     }
   }, [storedMessageIndex, storedMessagesLoaded, setMessages]);
 
-
-
   const firstMessageText = messages[0]?.parts.find(
     (part) => part.type === "text",
   )?.text;
@@ -255,11 +244,13 @@ const ChatGPT = () => {
               size="lg"
               className="relative h-auto w-full rounded-xl px-12 py-4 text-base font-bold shadow-md transition-transform hover:-translate-y-0.5"
             >
-              <span className="absolute inset-y-0 left-0 flex w-12 items-center justify-center text-3xl [&_svg]:!size-[1.875rem]">
-                {openaiSVG}
-              </span>
-              <span className="min-w-0 whitespace-normal break-words text-center leading-tight">
-                Chat with my consciousness
+              <span className="flex items-center justify-center gap-2 -ml-2">
+                <span className="flex w-12 items-center justify-center text-2xl [&_svg]:!size-[1.875rem]">
+                  {openaiSVG}
+                </span>
+                <span className="min-w-0 whitespace-normal break-words text-center leading-tight">
+                  Chat with my consciousness
+                </span>
               </span>
             </Button>
           </DialogTrigger>
@@ -336,7 +327,10 @@ const ChatGPT = () => {
           </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Label htmlFor="chat-model" className="text-xs text-muted-foreground">
+            <Label
+              htmlFor="chat-model"
+              className="text-xs text-muted-foreground"
+            >
               Model
             </Label>
             <Select
@@ -423,9 +417,7 @@ const ChatGPT = () => {
                 </Button>
               </div>
             ) : null}
-            {error ? (
-              <p className="text-destructive">{error.message}</p>
-            ) : null}
+            {error ? <p className="text-destructive">{error.message}</p> : null}
           </div>
 
           <form
@@ -535,11 +527,7 @@ const ChatDialog = ({ message }: { message: UIMessage }) => {
                     <div className="overflow-auto pb-4">{children}</div>
                   </pre>
                 ),
-                code({
-                  className = "overflow-auto",
-                  children,
-                  ...props
-                }) {
+                code({ className = "overflow-auto", children, ...props }) {
                   const match = /language-(\w+)/.exec(className || "");
                   return match ? (
                     <SyntaxHighlighter

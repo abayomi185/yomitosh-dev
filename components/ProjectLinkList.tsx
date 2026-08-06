@@ -18,7 +18,9 @@ const LinkList = () => {
                   <span className="absolute inset-y-0 left-0 flex w-12 items-center justify-center text-3xl [&_svg]:!size-[1.875rem]">
                     {link.emoji}
                   </span>
-                  <span>{link.title}</span>
+                  <span className="break-words text-wrap ml-8 leading-tight">
+                    {link.title}
+                  </span>
                 </Link>
               </Button>
             )}
