@@ -1,21 +1,12 @@
 import React from "react";
-import ChatGPT from "@components/ChatGPT";
-import Textarea from "react-textarea-autosize";
 
 const sendPrompt = (prompt: string) => {};
 
 const Chat: React.FC<{}> = () => {
   const [prompt, setPrompt] = React.useState("");
-  const [textAreaRows, setTextAreaRows] = React.useState(1);
 
   const [loadingResponse, setLoadingResponse] = React.useState(false);
 
-  React.useEffect(() => {
-    const textRows = prompt.split("\n").length;
-    const rows =
-      textRows >= 2 && textRows <= 3 ? textRows : textRows > 3 ? 3 : 1;
-    setTextAreaRows(rows);
-  }, [prompt]);
 
   return (
     <div className="dark h-full w-full flex flex-col">
@@ -34,7 +25,7 @@ const Chat: React.FC<{}> = () => {
       <div className="flex-1 flex-grow bg-gray-900"></div>
       <div className="min-h-8 max-h-24 flex w-full px-6 py-2 pb-8 bg-gray-900">
         <div className="w-full mr-2">
-          <Textarea
+          <textarea
             className="max-h-60 min-h-full border-solid border-2 border-gray-700 bg-gray-700 rounded-lg resize-none px-3 py-3 w-full"
             onChange={(e) => {
               setPrompt(e.target.value);

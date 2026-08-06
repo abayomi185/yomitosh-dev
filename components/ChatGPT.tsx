@@ -1,58 +1,92 @@
 import { useEffect, useState, useRef } from "react";
+import { useChat } from "@ai-sdk/react";
+import {
+  DefaultChatTransport,
+  type FileUIPart,
+  type UIMessage,
+} from "ai";
 import { useRouter } from "next/router";
-import { FaTimesCircle, FaRegClipboard, FaCheck } from "react-icons/fa";
+import { FaRegClipboard, FaCheck } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { a11yDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import remarkGfm from "remark-gfm";
-import { DndProvider, useDrop } from "react-dnd";
-import { HTML5Backend, NativeTypes } from "react-dnd-html5-backend";
+import { useDrop } from "react-dnd";
+import { NativeTypes } from "react-dnd-html5-backend";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LoaderCircle,
+  Plus,
+  Send,
+  Trash2,
+  X,
+} from "lucide-react";
 
-import { ASSISTANT_ROLE, GPTModel, IMessage, USER_ROLE } from "@type/chat";
-import { Action } from "@utils/util";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+import { GPTModel } from "@type/chat";
+
+const chatTransport = new DefaultChatTransport({ api: "/api/chat" });
+const CHAT_STORAGE_KEY = "chatThreads:v2";
+
 
 const ChatGPT = () => {
   const router = useRouter();
 
   const [accessKey, setAccessKey] = useState("");
-
-  const [isChatHistoryEnabled, setChatHistory] = useState(true);
-
-  const [storedMessages, setStoredMessages] = useState<IMessage[][]>([[]]);
-  const [storedMessageIndex, setStoredMessageIndex] = useState<number>();
-  const [storedMessagesLoaded, setStoredMessagesLoaded] =
-    useState<boolean>(false);
-
+  const [storedMessages, setStoredMessages] = useState<UIMessage[][]>([[]]);
+  const [storedMessageIndex, setStoredMessageIndex] = useState(0);
+  const [storedMessagesLoaded, setStoredMessagesLoaded] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
   const [prompt, setPrompt] = useState("");
-  const [promptCounter, setPromptCounter] = useState(0);
-
-  const [gptModel, setGptModel] = useState(GPTModel.GPT4o_mini);
-
+  const [gptModel, setGptModel] = useState(GPTModel.GPT56Luna);
   const [textAreaRows, setTextAreaRows] = useState(1);
+  const [image, setImage] = useState<string | null>(null);
 
-  const [loadingResponse, setLoadingResponse] = useState(false);
-  const [errorResponse, setErrorResponse] = useState(false);
-  const [gptModelError, setGptModelError] = useState(false);
+  const {
+    messages,
+    sendMessage,
+    status,
+    stop,
+    setMessages,
+    error,
+    clearError,
+  } = useChat({ transport: chatTransport });
 
-  const [messages, setMessages] = useState<IMessage[]>([]);
+  const loadingResponse = status === "submitted" || status === "streaming";
 
-  const messagesEndRef = useRef(null);
-  const messageBoxRef = useRef(null);
-
-  const abortController = useRef(null);
-
-  const [image, setImage] = useState(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageBoxRef = useRef<HTMLDivElement>(null);
 
   const [{ isOver }, imageDrop] = useDrop(() => ({
     accept: [NativeTypes.FILE],
-    drop: (item: any, _monitor) => {
+    drop: (item: { files?: File[] }) => {
       // handle the drop
       if (item.files && item.files.length > 0) {
         const reader = new FileReader();
-        reader.onload = function (evt) {
-          setImage(evt.target.result);
+        reader.onload = (event) => {
+          if (typeof event.target?.result === "string") {
+            setImage(event.target.result);
+          }
         };
         reader.readAsDataURL(item.files[0]);
       }
@@ -62,107 +96,34 @@ const ChatGPT = () => {
     }),
   }));
 
-  const updateStreamedMessage = (message: string) => {
-    setMessages((prevItems) => {
-      const lastMessageIndex = prevItems.length - 1;
-      const newMessages = [...prevItems];
-      newMessages[lastMessageIndex] = {
-        isChatGPT: true,
-        text: message,
-      };
-      return newMessages;
-    });
-  };
 
-  const resetMessages = () => {
-    setMessages([]);
-    setPrompt("");
-    setPromptCounter(0);
-    setLoadingResponse(false);
-    abortController.current && abortController.current.abort();
-  };
+  const sendPrompt = (text: string) => {
+    const files: FileUIPart[] = image
+      ? [
+          {
+            type: "file",
+            mediaType:
+              image.slice(5, image.indexOf(";")) || "application/octet-stream",
+            url: image,
+          },
+        ]
+      : [];
 
-  const abortRequest = () => {
-    abortController.current && abortController.current.abort();
-  };
-
-  const getCompletion = async (prompt: string) => {
-    abortController.current = new AbortController();
-
-    const response = await fetch("api/chat", {
-      signal: abortController.current.signal,
-      method: "POST",
-      body: JSON.stringify({
-        prompt: {
-          type: "text",
-          text: prompt,
-          ...(image ? { image_url: image } : {}),
-        },
-        userMessages: [
-          ...messages.map((message) => {
-            if (message.isChatGPT) {
-              return {
-                role: ASSISTANT_ROLE,
-                content: {
-                  type: "text",
-                  text: message.text,
-                  ...(message.image ? { image_url: message.image } : {}),
-                },
-              };
-            } else {
-              return {
-                role: USER_ROLE,
-                content: { type: "text", text: message.text },
-                ...(message.image ? { image_url: message.image } : {}),
-              };
-            }
-          }),
-        ],
-        model: gptModel,
-        accessKey: accessKey,
-      }),
-      headers: {
-        "Content-Type": "application/json",
+    void sendMessage(
+      {
+        role: "user",
+        parts: [{ type: "text", text }, ...files],
       },
-    });
+      {
+        body: {
+          model: gptModel,
+          accessKey,
+        },
+      },
+    );
 
-    if (response.status === 400) {
-      setLoadingResponse(false);
-      setErrorResponse(true);
-    }
-
-    try {
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let message = ""; // Message built from parsed chunks
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const decodedValue = decoder.decode(value);
-
-        message = message + decodedValue;
-        setMessages([...messages, { isChatGPT: true, text: "" }]);
-        updateStreamedMessage(message);
-      }
-
-      setLoadingResponse(false);
-    } catch (error) {
-      setLoadingResponse(false);
-      setErrorResponse(true);
-    }
-  };
-
-  const sendPrompt = (prompt: string) => {
-    setMessages([
-      ...messages,
-      { isChatGPT: false, text: prompt, ...(image ? { image: image } : {}) },
-    ]);
-    setPromptCounter(promptCounter + 1);
     setPrompt("");
-
-    setLoadingResponse(true);
+    setImage(null);
   };
 
   const scrollToBottom = () => {
@@ -176,64 +137,41 @@ const ChatGPT = () => {
     }
   };
 
-  const retrieveStoredMessage = (direction: Action) => {
-    if (direction === Action.BACK) {
-      storedMessageIndex - 1 >= 0 &&
-        setStoredMessageIndex(storedMessageIndex - 1);
-      // storeMessages();
-    }
-    if (direction === Action.FORWARD) {
-      storedMessageIndex + 1 <= storedMessages.length &&
-        setStoredMessageIndex(storedMessageIndex + 1);
-      // storeMessages();
-    }
-  };
-
-  const getAllStoredMessages = () => {
-    const messagesFromStorage = JSON.parse(
-      localStorage.getItem("storedMessages"),
-    ) || [[]];
-    setStoredMessages(messagesFromStorage);
-    setStoredMessageIndex(messagesFromStorage.length - 1);
-    setStoredMessagesLoaded(true);
+  const moveStoredMessage = (offset: -1 | 1) => {
+    setStoredMessageIndex((current) =>
+      Math.min(Math.max(current + offset, 0), storedMessages.length - 1),
+    );
   };
 
   const createNewChat = () => {
-    resetMessages();
-    setStoredMessageIndex(storedMessageIndex + 1);
+    stop();
+    clearError();
+    const nextIndex = storedMessages.length;
+    setStoredMessages((current) => [...current, []]);
+    setStoredMessageIndex(nextIndex);
+    setMessages([]);
+    setPrompt("");
+    setImage(null);
   };
 
   const deleteStoredChat = () => {
-    abortRequest();
+    stop();
+    clearError();
 
-    const messagesToStore = storedMessages;
-    const indexToRemove = storedMessageIndex;
-    messagesToStore.splice(indexToRemove, 1);
-    // Change storedMessageIndex before removing
-    setStoredMessages(messagesToStore);
-    if (indexToRemove - 1 < 0) {
-      createNewChat();
-    } else {
-      setStoredMessageIndex(indexToRemove - 1);
+    if (storedMessages.length <= 1) {
+      setStoredMessages([[]]);
+      setStoredMessageIndex(0);
+      setMessages([]);
+      return;
     }
-  };
 
-  const deleteAllStoredChat = () => {
-    setStoredMessageIndex(0);
-    resetMessages();
-    setStoredMessages([]);
-    localStorage.clear();
-  };
-
-  const storeMessages = () => {
-    if (isChatHistoryEnabled) {
-      if (storedMessagesLoaded) {
-        const messagesToStore = storedMessages;
-        messagesToStore[storedMessageIndex] =
-          messages ?? messagesToStore[storedMessageIndex];
-        setStoredMessages(messagesToStore);
-      }
-    }
+    const nextThreads = storedMessages.filter(
+      (_, index) => index !== storedMessageIndex,
+    );
+    const nextIndex = Math.max(0, storedMessageIndex - 1);
+    setStoredMessages(nextThreads);
+    setStoredMessageIndex(nextIndex);
+    setMessages(nextThreads[nextIndex] ?? []);
   };
 
   const handleSubmit = (
@@ -242,15 +180,31 @@ const ChatGPT = () => {
       | React.KeyboardEvent<HTMLTextAreaElement>,
   ) => {
     event.preventDefault();
-    if (prompt !== "" || gptModelError) {
-      sendPrompt(prompt);
-      setImage(null);
+    const text = prompt.trim();
+    if (text && !loadingResponse) {
+      sendPrompt(text);
     }
   };
 
   useEffect(() => {
-    getAllStoredMessages();
-  }, []);
+    try {
+      const parsed = JSON.parse(
+        localStorage.getItem(CHAT_STORAGE_KEY) ?? "[]",
+      );
+      const stored: UIMessage[][] =
+        Array.isArray(parsed) && parsed.length > 0 ? parsed : [[]];
+      const latestIndex = stored.length - 1;
+      setStoredMessages(stored);
+      setStoredMessageIndex(latestIndex);
+      setMessages(stored[latestIndex] ?? []);
+    } catch {
+      setStoredMessages([[]]);
+      setStoredMessageIndex(0);
+      setMessages([]);
+    } finally {
+      setStoredMessagesLoaded(true);
+    }
+  }, [setMessages]);
 
   useEffect(() => {
     const { chat } = router.query;
@@ -264,52 +218,44 @@ const ChatGPT = () => {
     setTextAreaRows(rows);
   }, [prompt]);
 
-  useEffect(() => {
-    promptCounter > 0 && getCompletion(messages.at(-1).text);
-  }, [promptCounter]);
 
   useEffect(() => {
     scrollToBottom();
-    storeMessages();
-  }, [messages]);
 
-  useEffect(() => {
-    if (isChatHistoryEnabled) {
-      if (storedMessagesLoaded) {
-        setMessages(storedMessages[storedMessageIndex]);
-      }
+    if (!storedMessagesLoaded) {
+      return;
     }
-  }, [storedMessageIndex]);
+
+    setStoredMessages((current) => {
+      const next = [...current];
+      next[storedMessageIndex] = messages;
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, [messages, storedMessageIndex, storedMessagesLoaded]);
 
   useEffect(() => {
-    localStorage.setItem("storedMessages", JSON.stringify(storedMessages));
-  }, [messages.length]);
-
-  useEffect(() => {
-    showModal && (document.body.style.overflow = "hidden");
-    !showModal && (document.body.style.overflow = "unset");
-  }, [showModal]);
-
-  useEffect(() => {
-    if (image) {
-      setGptModelError(gptModel !== GPTModel.GPT4o);
-    } else if (gptModelError !== false) {
-      setGptModelError(false);
+    if (storedMessagesLoaded) {
+      setMessages(storedMessages[storedMessageIndex] ?? []);
     }
-  }, [image]);
+  }, [storedMessageIndex, storedMessagesLoaded, setMessages]);
+
+
+
+  const firstMessageText = messages[0]?.parts.find(
+    (part) => part.type === "text",
+  )?.text;
 
   return (
-    <>
-      <DndProvider backend={HTML5Backend}>
-        <section className="flex px-3 sm:px-0 pb-12">
-          <span className="w-full md:w-4/5 lg:w-3/6 mx-auto">
-            <button
-              className="relative transition mx-auto w-3/4 md:w-2/4 duration-200 font-bold bg-gray-700 border-gray-700 border-2 hover:bg-custom-7 py-4 block text-center text-gray-200 hover:text-gray-800 rounded-lg px-12 md:px-12"
-              onClick={() => {
-                setShowModal(!showModal);
-              }}
+    <Dialog open={showModal} onOpenChange={setShowModal}>
+      <section className="flex px-3 pb-12 sm:px-0">
+        <span className="mx-auto w-full md:w-4/5 lg:w-3/6">
+          <DialogTrigger asChild>
+            <Button
+              size="lg"
+              className="relative mx-auto h-auto w-3/4 rounded-xl px-12 py-4 text-base font-bold shadow-md transition-transform hover:-translate-y-0.5 md:w-2/4"
             >
-              <span className="absolute left-0 top-0 bottom-0 pl-3 flex items-center">
+              <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                 {openaiSVG}
               </span>
               <span>
@@ -317,221 +263,207 @@ const ChatGPT = () => {
                 <br />
                 consciousness
               </span>
-            </button>
-          </span>
-        </section>
-        {showModal && (
-          <>
-            <div
-              ref={imageDrop}
-              className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+            </Button>
+          </DialogTrigger>
+        </span>
+      </section>
+
+      <DialogContent
+        ref={(node) => {
+          imageDrop(node);
+        }}
+        className="flex h-[95dvh] w-[calc(100%-1rem)] max-w-4xl flex-col gap-0 overflow-hidden rounded-2xl p-0 md:h-[78vh]"
+      >
+        <DialogHeader className="border-b px-5 py-4 text-left">
+          <DialogTitle className="text-2xl font-bold tracking-tight">
+            A.G.I. Yomi
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            Chat with Yomi&apos;s AI consciousness.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="flex flex-wrap items-center gap-2 border-b bg-muted/35 px-4 py-3">
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              onClick={deleteStoredChat}
+              aria-label="Delete current chat"
             >
-              <div className="relative my-6 mx-auto w-full max-w-4xl h-[95%] md:h-3/4 flex">
-                {/*content*/}
-                <div className="border-0 rounded-2xl shadow-lg relative flex flex-col w-full h-full bg-white outline-none focus:outline-none">
-                  {/*header*/}
-                  <div className="flex items-start justify-between px-4 py-2 border-b border-solid border-slate-200 rounded-t">
-                    <h3 className="text-3xl">A.G.I. Yomi</h3>
-                    <button
-                      className="p-1 ml-auto bg-transparent border-0 text-black opacity-75 float-right text-3xl leading-none font-semibold outline-none focus:outline-none"
-                      onClick={() => setShowModal(false)}
-                    >
-                      <span className="bg-transparent text-red-800 h-6 w-6 mt-1 text-2xl block outline-none focus:outline-none">
-                        <FaTimesCircle size="1.5rem" />
-                      </span>
-                    </button>
-                  </div>
-                  <div className="px-5 py-2 border-b border-solid border-slate-200 flex flex-wrap justify-between">
-                    <div className="flex mr-auto ml-auto sm:ml-0 relative my-1 h-12 sm:h-8">
-                      <button
-                        className="px-3 w-12 sm:w-8 rounded bg-red-300 hover:bg-gray-300"
-                        onClick={() => {
-                          // deleteAllStoredChat();
-                          deleteStoredChat();
-                        }}
-                      >
-                        {"x"}
-                      </button>
-                      <button
-                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
-                        onClick={() => {
-                          retrieveStoredMessage(Action.BACK);
-                        }}
-                        disabled={storedMessageIndex === 0 || loadingResponse}
-                      >
-                        {"<"}
-                      </button>
-                      <button
-                        className={`px-2 ml-1 rounded cursor-default
-                          ${isChatHistoryEnabled ? "bg-custom-7" : "bg-gray-300"
-                          }`}
-                        onClick={() => {
-                          // setChatHistory(!isChatHistoryEnabled);
-                        }}
-                      >
-                        {`Chat History: ${storedMessageIndex}`}
-                      </button>
-                      <button
-                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-custom-7 hover:bg-gray-300 disabled:bg-gray-300"
-                        onClick={() => {
-                          retrieveStoredMessage(Action.FORWARD);
-                        }}
-                        disabled={
-                          storedMessageIndex >= storedMessages.length - 1 ||
-                          loadingResponse
-                        }
-                      >
-                        {">"}
-                      </button>
-                      <button
-                        className="px-3 w-12 sm:w-8 rounded ml-1 bg-slate-400 hover:bg-gray-300 disabled:bg-gray-300"
-                        onClick={() => {
-                          createNewChat();
-                        }}
-                        disabled={messages.length <= 0 || loadingResponse}
-                      >
-                        {"+"}
-                      </button>
-                    </div>
-                    <label className="cursor-pointer flex items-center">
-                      Use:
-                      <select
-                        value={gptModel}
-                        onChange={(e) =>
-                          setGptModel(e.target.value as GPTModel)
-                        }
-                        className="ml-2 align-middle cursor-pointer"
-                      >
-                        {Object.entries(GPTModel).map(([key, value]) => (
-                          <option key={key} value={value}>
-                            {value}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="ml-2 flex items-center">
-                      <input
-                        type="password"
-                        placeholder="ext. access"
-                        value={accessKey}
-                        onChange={(event) => {
-                          setAccessKey(event.target.value);
-                        }}
-                        className="border-gray-300 border-2 rounded px-1 py-0.5 w-28 ml-2"
-                      />
-                    </label>
-                  </div>
-                  <div className="px-6 border-b border-solid border-slate-200 ">
-                    <p className="text-gray-500 whitespace-nowrap overflow-hidden overflow-ellipsis">
-                      {messages?.[0]?.text}
-                    </p>
-                  </div>
-                  {/*body*/}
-                  <div
-                    className={`px-2 md:px-6 pb-5 my-auto flex h-[0%] grow flex-col ${isOver ? "bg-gray-200 rounded-b-lg" : ""
-                      }`}
-                  >
-                    <div
-                      ref={messageBoxRef}
-                      className="overflow-x-auto grow mb-3 mx-6 flex flex-col scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200"
-                    >
-                      {messages.map((message, index) => (
-                        <ChatDialog
-                          key={index}
-                          content={message.text}
-                          chatgpt={message.isChatGPT}
-                          image={message.image}
-                        />
-                      ))}
-                      <div ref={messagesEndRef} />
-                    </div>
-                    <div className="px-6 py-2">
-                      {image ? (
-                        <div className="relative inline-block">
-                          <img src={image} className="w-24 h-24 rounded-lg" />
-                          <button
-                            className="absolute top-0 right-0 mr-2 mt-2 bg-red-400 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-500"
-                            onClick={() => {
-                              setImage(null);
-                            }}
-                          >
-                            x
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="px-6">
-                      {loadingResponse ? (
-                        <div className="flex justify-between">
-                          <p className="inline">Loading...</p>
-                          <button
-                            className="mr-5 hover:underline"
-                            onClick={() => {
-                              abortRequest();
-                            }}
-                          >
-                            cancel
-                          </button>
-                        </div>
-                      ) : null}
-                      {errorResponse
-                        ? "Oops, error occured, please try again."
-                        : null}
-                      {gptModelError
-                        ? "Images are only supported when using GPT-4 Vision."
-                        : null}
-                    </div>
-                    <form
-                      onSubmit={handleSubmit}
-                      className="min-h-8 max-h-24 bottom-0 left-0 flex w-full px-6"
-                    >
-                      <div className="inline h-full relative flex-1 w-full mr-2">
-                        <textarea
-                          className="h-full border-solid border-2 border-gray-700 rounded-lg resize-none relative left-0 top-0 px-3 pt-3 pb-1 w-full"
-                          onChange={(e) => {
-                            setPrompt(e.target.value);
-                            setErrorResponse(false);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSubmit(e);
-                            }
-                          }}
-                          value={prompt || ""}
-                          rows={textAreaRows}
-                          placeholder={"Ask something"}
-                        />
-                      </div>
-                      <div className="inline h-full">
-                        <input
-                          type="button"
-                          className={`relative h-full transition duration-200 font-bold bg-gray-700 border-gray-700 border-2 ${loadingResponse
-                              ? "text-gray-700"
-                              : "hover:bg-custom-7 hover:text-gray-800 text-gray-200"
-                            } text-center rounded-lg px-5`}
-                          value={"Send"}
-                          onClick={() => {
-                            if (prompt !== "") sendPrompt(prompt);
-                          }}
-                          disabled={loadingResponse}
-                        />
-                      </div>
-                    </form>
-                  </div>
-                </div>
+              <Trash2 />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => moveStoredMessage(-1)}
+              disabled={storedMessageIndex === 0 || loadingResponse}
+              aria-label="Previous chat"
+            >
+              <ChevronLeft />
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              className="cursor-default tabular-nums"
+              disabled
+            >
+              History {storedMessageIndex ?? 0}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => moveStoredMessage(1)}
+              disabled={
+                storedMessageIndex >= storedMessages.length - 1 ||
+                loadingResponse
+              }
+              aria-label="Next chat"
+            >
+              <ChevronRight />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={createNewChat}
+              disabled={messages.length <= 0 || loadingResponse}
+              aria-label="New chat"
+            >
+              <Plus />
+            </Button>
+          </div>
+
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Label htmlFor="chat-model" className="text-xs text-muted-foreground">
+              Model
+            </Label>
+            <Select
+              value={gptModel}
+              onValueChange={(value) => setGptModel(value as GPTModel)}
+            >
+              <SelectTrigger id="chat-model" className="h-9 w-40 bg-background">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(GPTModel).map(([key, value]) => (
+                  <SelectItem key={key} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Label htmlFor="access-key" className="sr-only">
+              Extended access key
+            </Label>
+            <Input
+              id="access-key"
+              type="password"
+              placeholder="Access key"
+              value={accessKey}
+              onChange={(event) => setAccessKey(event.target.value)}
+              className="h-9 w-32 bg-background"
+            />
+          </div>
+        </div>
+
+        {firstMessageText ? (
+          <p className="truncate border-b px-6 py-2 text-sm text-muted-foreground">
+            {firstMessageText}
+          </p>
+        ) : null}
+
+        <div
+          className={`flex min-h-0 grow flex-col px-2 pb-4 pt-3 md:px-6 ${
+            isOver ? "bg-muted" : ""
+          }`}
+        >
+          <div
+            ref={messageBoxRef}
+            className="mx-2 mb-3 flex grow flex-col overflow-x-auto scrollbar-thin scrollbar-track-muted scrollbar-thumb-muted-foreground/40 md:mx-6"
+          >
+            {messages.map((message) => (
+              <ChatDialog key={message.id} message={message} />
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {image ? (
+            <div className="px-2 pb-2 md:px-6">
+              <div className="relative inline-block">
+                <img
+                  src={image}
+                  alt="Image attached to the next message"
+                  className="h-24 w-24 rounded-lg border object-cover"
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -right-2 -top-2 h-7 w-7 rounded-full"
+                  onClick={() => setImage(null)}
+                  aria-label="Remove attached image"
+                >
+                  <X />
+                </Button>
               </div>
             </div>
-            <div
-              className="opacity-25 fixed inset-0 z-40 bg-black"
-              onClick={() => {
-                setShowModal(false);
+          ) : null}
+
+          <div className="min-h-6 px-2 text-sm md:px-6">
+            {loadingResponse ? (
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="flex items-center gap-2">
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                  Thinking
+                </span>
+                <Button type="button" variant="ghost" size="sm" onClick={stop}>
+                  Cancel
+                </Button>
+              </div>
+            ) : null}
+            {error ? (
+              <p className="text-destructive">{error.message}</p>
+            ) : null}
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="flex w-full items-end gap-2 px-2 pt-2 md:px-6"
+          >
+            <Textarea
+              className="max-h-28 min-h-10 resize-none"
+              onChange={(event) => {
+                setPrompt(event.target.value);
+                clearError();
               }}
-            ></div>
-          </>
-        )}
-      </DndProvider>
-    </>
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  handleSubmit(event);
+                }
+              }}
+              value={prompt}
+              rows={textAreaRows}
+              placeholder="Ask something"
+              aria-label="Message"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              disabled={loadingResponse || prompt.trim() === ""}
+              aria-label="Send message"
+            >
+              <Send />
+            </Button>
+          </form>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 export default ChatGPT;
@@ -577,53 +509,76 @@ const CodeCopyBtn = ({ children }) => {
   );
 };
 
-const ChatDialog = ({ content, chatgpt, image }) => {
+const ChatDialog = ({ message }: { message: UIMessage }) => {
+  const isAssistant = message.role === "assistant";
+
   return (
     <div
-      className={`rounded-2xl px-3 py-3 text-gray-200 mb-2 break-words max-w-full ${!chatgpt ? "ml-auto bg-green-600" : "bg-gray-700 mr-auto"
-        }`}
+      className={`mb-2 max-w-full break-words rounded-2xl px-3 py-3 ${
+        isAssistant
+          ? "mr-auto bg-secondary text-secondary-foreground"
+          : "ml-auto bg-primary text-primary-foreground"
+      }`}
     >
-      {chatgpt && (
-        <p className="border-b border-solid border-gray-500 mb-2">A.G.I Yomi</p>
-      )}
-      <ReactMarkdown
-        children={content}
-        remarkPlugins={[remarkGfm]}
-        components={{
-          pre: ({ children }) => (
-            <pre className="relative my-2 p-2 mb-4 bg-gray-600 rounded-lg w-full">
-              <CodeCopyBtn>{children}</CodeCopyBtn>
-              <div className="overflow-auto pb-4">{children}</div>
-            </pre>
-          ),
-          code({
-            node,
-            inline,
-            className = "overflow-auto",
-            children,
-            ...props
-          }) {
-            const match = /language-(\w+)/.exec(className || "");
-            return !inline && match ? (
-              <SyntaxHighlighter
-                style={a11yDark}
-                language={match[1]}
-                PreTag="div"
-                {...props}
-              >
-                {String(children).replace(/\n$/, "")}
-              </SyntaxHighlighter>
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          },
-        }}
-      />
-      {image && (
-        <img src={image} className="w-48 h-48 rounded-lg object-contain" />
-      )}
+      {isAssistant ? (
+        <p className="mb-2 border-b border-current/20 pb-1 text-sm font-semibold">
+          A.G.I Yomi
+        </p>
+      ) : null}
+      {message.parts.map((part, index) => {
+        if (part.type === "text") {
+          return (
+            <ReactMarkdown
+              key={`${message.id}-text-${index}`}
+              remarkPlugins={[remarkGfm]}
+              components={{
+                pre: ({ children }) => (
+                  <pre className="relative my-2 mb-4 w-full rounded-lg bg-gray-800 p-2 text-gray-100">
+                    <CodeCopyBtn>{children}</CodeCopyBtn>
+                    <div className="overflow-auto pb-4">{children}</div>
+                  </pre>
+                ),
+                code({
+                  className = "overflow-auto",
+                  children,
+                  ...props
+                }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  return match ? (
+                    <SyntaxHighlighter
+                      style={a11yDark}
+                      language={match[1]}
+                      PreTag="div"
+                      {...props}
+                    >
+                      {String(children).replace(/\n$/, "")}
+                    </SyntaxHighlighter>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            >
+              {part.text}
+            </ReactMarkdown>
+          );
+        }
+
+        if (part.type === "file" && part.mediaType.startsWith("image/")) {
+          return (
+            <img
+              key={`${message.id}-image-${index}`}
+              src={part.url}
+              alt={part.filename ?? "Chat attachment"}
+              className="h-48 w-48 rounded-lg object-contain"
+            />
+          );
+        }
+
+        return null;
+      })}
     </div>
   );
 };
