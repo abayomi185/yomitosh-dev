@@ -1,13 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=Karla:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #__next {
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 22% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 22% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 22% 12%;
+    --primary: 154 32% 24%;
+    --primary-foreground: 60 20% 98%;
+    --secondary: 40 30% 94%;
+    --secondary-foreground: 222 22% 12%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 15% 42%;
+    --accent: 18 100% 66%;
+    --accent-foreground: 222 22% 12%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 18% 84%;
+    --input: 215 18% 84%;
+    --ring: 154 32% 24%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222 22% 9%;
+    --foreground: 60 20% 98%;
+    --card: 222 22% 11%;
+    --card-foreground: 60 20% 98%;
+    --popover: 222 22% 11%;
+    --popover-foreground: 60 20% 98%;
+    --primary: 140 22% 67%;
+    --primary-foreground: 222 22% 10%;
+    --secondary: 215 18% 18%;
+    --secondary-foreground: 60 20% 98%;
+    --muted: 215 18% 18%;
+    --muted-foreground: 215 14% 68%;
+    --accent: 18 100% 66%;
+    --accent-foreground: 222 22% 10%;
+    --destructive: 0 62% 38%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 18% 24%;
+    --input: 215 18% 24%;
+    --ring: 140 22% 67%;
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+html,
+body,
+#__next {
   height: 100%;
 }
 
 body {
-  font-family: 'Karla';
-  @apply bg-gray-200 text-black
+  font-family: "Karla", sans-serif;
+  @apply bg-background text-foreground antialiased;
 }
