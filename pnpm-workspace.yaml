@@ -1,0 +1,4 @@
+overrides:
+  "@babel/runtime": 7.26.10
+  nanoid: 3.3.18
+  undici: 7.29.1
