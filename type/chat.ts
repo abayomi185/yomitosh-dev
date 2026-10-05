@@ -1,3 +1,1 @@
-export enum GPTModel {
-  GPT56Luna = "gpt-5.6-luna",
-}
+export const GPT_MODEL = "gpt-5.6-luna" as const;

@@ -9,7 +9,7 @@ import {
 } from "ai";
 
 import { cv_prompt } from "@/constants/prompt";
-import { GPTModel } from "@/type/chat";
+import { GPT_MODEL } from "@/type/chat";
 
 export const maxDuration = 60;
 
@@ -24,7 +24,6 @@ ${cv_prompt}`;
 
 interface ChatRequest {
   messages: UIMessage[];
-  model?: GPTModel;
   accessKey?: string;
 }
 
@@ -33,8 +32,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "OpenAI is not configured" }, { status: 500 });
   }
 
-  const { messages, model = GPTModel.GPT56Luna, accessKey }: ChatRequest =
-    await request.json();
+  const { messages, accessKey }: ChatRequest = await request.json();
 
   const hasExtendedAccess =
     Boolean(process.env.ACCESS_KEY) && accessKey === process.env.ACCESS_KEY;
@@ -46,12 +44,8 @@ export async function POST(request: Request) {
     );
   }
 
-  if (model !== GPTModel.GPT56Luna) {
-    return Response.json({ error: "Unsupported model" }, { status: 400 });
-  }
-
   const result = streamText({
-    model: openai.responses(model),
+    model: openai.responses(GPT_MODEL),
     system: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     maxOutputTokens: 4096,

@@ -30,16 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
-import { GPTModel } from "@type/chat";
 
 const chatTransport = new DefaultChatTransport({ api: "/api/chat" });
 const CHAT_STORAGE_KEY = "chatThreads:v2";
@@ -53,7 +44,6 @@ const ChatGPT = () => {
   const [storedMessagesLoaded, setStoredMessagesLoaded] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const [gptModel, setGptModel] = useState(GPTModel.GPT56Luna);
   const [textAreaRows, setTextAreaRows] = useState(1);
   const [image, setImage] = useState<string | null>(null);
 
@@ -110,7 +100,6 @@ const ChatGPT = () => {
       },
       {
         body: {
-          model: gptModel,
           accessKey,
         },
       },
@@ -132,9 +121,19 @@ const ChatGPT = () => {
   };
 
   const moveStoredMessage = (offset: -1 | 1) => {
-    setStoredMessageIndex((current) =>
-      Math.min(Math.max(current + offset, 0), storedMessages.length - 1),
+    const nextIndex = Math.min(
+      Math.max(storedMessageIndex + offset, 0),
+      storedMessages.length - 1,
     );
+
+    if (nextIndex === storedMessageIndex) {
+      return;
+    }
+
+    stop();
+    clearError();
+    setStoredMessageIndex(nextIndex);
+    setMessages(storedMessages[nextIndex] ?? []);
   };
 
   const createNewChat = () => {
@@ -224,12 +223,6 @@ const ChatGPT = () => {
       return next;
     });
   }, [messages, storedMessageIndex, storedMessagesLoaded]);
-
-  useEffect(() => {
-    if (storedMessagesLoaded) {
-      setMessages(storedMessages[storedMessageIndex] ?? []);
-    }
-  }, [storedMessageIndex, storedMessagesLoaded, setMessages]);
 
   const firstMessageText = messages[0]?.parts.find(
     (part) => part.type === "text",
@@ -327,27 +320,6 @@ const ChatGPT = () => {
           </div>
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Label
-              htmlFor="chat-model"
-              className="text-xs text-muted-foreground"
-            >
-              Model
-            </Label>
-            <Select
-              value={gptModel}
-              onValueChange={(value) => setGptModel(value as GPTModel)}
-            >
-              <SelectTrigger id="chat-model" className="h-9 w-40 bg-background">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(GPTModel).map(([key, value]) => (
-                  <SelectItem key={key} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Label htmlFor="access-key" className="sr-only">
               Extended access key
             </Label>
